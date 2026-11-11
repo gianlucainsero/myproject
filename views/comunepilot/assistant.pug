@@ -1,6 +1,7 @@
 extends layout
 
 block content
+  - const levels = [{ label: 'Risposta diretta', icon: 'fa-circle-check', description: 'I passi da fare e il manuale da cui li ho presi.' }, { label: 'Ti guido io', icon: 'fa-list-check', description: 'Ti faccio qualche domanda e ti preparo una checklist.' }, { label: 'Ticket assistenza', icon: 'fa-ticket', description: 'Preparo la richiesta. La confermi tu nella coda simulata.' }];
   header.cp-page-intro
     span.cp-eyebrow Servizi Demografici
     h1 Assistente
@@ -14,6 +15,12 @@ block content
           h2= `Assistente ${productName}`
           p= assistantMode
         button#new-case.cp-btn.cp-btn-outline(type='button', hidden) Nuova domanda
+      ol.cp-stepper(aria-label='Livello di aiuto')
+        each level, index in levels
+          li.cp-step(class=`level-${index + 1}`, data-assistant-level=index + 1, data-label=level.label, data-icon=level.icon)
+            span.cp-step-number(aria-hidden='true')= index + 1
+            span= level.label
+            span.cp-step-current(aria-hidden='true') Attivo
       #messages.cp-messages(role='log', aria-live='polite', aria-relevant='additions text')
         #empty-chat.cp-empty-chat
           h3 Come posso aiutarti?
@@ -31,58 +38,69 @@ block content
           i.fa-solid.fa-arrow-up(aria-hidden='true')
       p.cp-chat-note Usa dati di esempio e ometti i dati personali.
     aside.cp-card.cp-document.cp-chat-aside
-      h2 Come ti aiuta
+      h2 Come ti aiuto
       ol.cp-level-list
-        li
-          span.cp-level-number 1
-          div
-            strong Risposta diretta
-            p Spiegazione breve e riferimento al manuale.
-        li
-          span.cp-level-number 2
-          div
-            strong Guida passo passo
-            p Chiarimenti e istruzioni per la tua procedura.
-        li
-          span.cp-level-number 3
-          div
-            strong Richiesta di assistenza
-            p Bozza da rivedere prima di aggiungerla alla coda simulata.
+        each level, index in levels
+          li
+            span.cp-level-tag(class=`level-${index + 1}`, aria-hidden='true')
+              i.fa-solid(class=level.icon)
+              = index + 1
+            div
+              strong= level.label
+              p= level.description
   template#ticket-template
     form.cp-ticket-form
-      h3 Bozza di ticket
-      p Controlla i dettagli prima di inserirla nella coda simulata.
-      label
-        | Oggetto
-        input(name='summary', required, maxlength='140')
-      label
-        | Descrizione
-        textarea(name='description', required, maxlength='2500', rows='3')
-      label
-        | Tentativi già fatti
-        textarea(name='stepsTried', maxlength='1200', rows='2')
-      .cp-fields
-        label
-          | Tipo
-          select(name='type', required)
-            option(value='bug') Possibile anomalia
-            option(value='configurazione') Configurazione
-            option(value='formazione') Formazione
-            option(value='altro') Supporto operativo
-        label
-          | Impatto
-          select(name='impact', required)
-            option(value='limitato') Limitato
-            option(value='operatore') Singolo operatore
-            option(value='ufficio') Ufficio bloccato
-        label
-          | Urgenza
-          select(name='urgency', required)
-            option(value='nessuna') Nessuna scadenza
-            option(value='presto') A breve
-            option(value='oggi') Entro oggi
-      p.cp-priority(aria-live='polite')
-      button.cp-btn.cp-btn-primary(type='submit') Aggiungi alla coda simulata
+      .cp-ticket
+        header.cp-ticket-heading
+          h3 Bozza ticket
+          span Servizi Demografici
+        dl.cp-ticket-preview
+          dt Oggetto
+          dd(data-ticket-summary)
+          dt Tipo
+          dd
+            span.cp-type-tag(data-ticket-type)
+          dt Priorità
+          dd(data-ticket-priority)
+          dt Cosa hai provato
+          dd(data-ticket-attempts)
+        .cp-ticket-editor(hidden)
+          label
+            | Oggetto
+            input(name='summary', required, maxlength='140')
+          label
+            | Descrizione
+            textarea(name='description', required, maxlength='2500', rows='3')
+          label
+            | Cosa hai provato
+            textarea(name='stepsTried', maxlength='1200', rows='2')
+          .cp-fields
+            label
+              | Tipo
+              select(name='type', required)
+                option(value='bug') Possibile bug
+                option(value='configurazione') Configurazione
+                option(value='formazione') Formazione
+                option(value='altro') Supporto operativo
+            label
+              | Impatto
+              select(name='impact', required)
+                option(value='limitato') Limitato
+                option(value='operatore') Singolo operatore
+                option(value='ufficio') Ufficio bloccato
+            label
+              | Urgenza
+              select(name='urgency', required)
+                option(value='nessuna') Nessuna scadenza
+                option(value='presto') A breve
+                option(value='oggi') Entro oggi
+          p.cp-priority(aria-live='polite')
+      .cp-chat-actions
+        button.cp-btn.cp-btn-ticket(type='submit')
+          i.fa-solid.fa-paper-plane(aria-hidden='true')
+          | Invia il ticket
+        button.cp-btn.cp-btn-outline(type='button', data-ticket-edit) Modifica
+      p.cp-ticket-note Invio nella coda simulata.
       p.cp-form-error(role='alert', hidden)
 
 block scripts

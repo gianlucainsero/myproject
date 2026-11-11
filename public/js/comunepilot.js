@@ -40,6 +40,12 @@
     return control;
   }
 
+  function icon(name) {
+    const symbol = element('i', `fa-solid ${name}`);
+    symbol.setAttribute('aria-hidden', 'true');
+    return symbol;
+  }
+
   function showError(container, error) {
     container.hidden = !error;
     container.textContent = error?.message || '';
@@ -47,11 +53,11 @@
 
   function sourceList(sources) {
     const wrapper = element('div', 'cp-sources');
-    if (!sources.length) return wrapper;
-    wrapper.append(element('strong', '', sources.length === 1 ? 'Fonte' : 'Fonti'));
     for (const source of sources) {
-      const label = source.section ? `${source.title} · ${source.section}` : source.title;
-      const item = source.url ? link(label, source.url, 'cp-source') : element('span', 'cp-source', label);
+      const title = source.section ? `${source.title} · ${source.section}` : source.title;
+      const label = `Fonte: ${title}`;
+      const item = source.url ? link('', source.url, 'cp-source') : element('span', 'cp-source');
+      item.append(icon('fa-book-open'), label);
       if (source.url) {
         item.target = '_blank';
         item.rel = 'noopener';
@@ -62,6 +68,34 @@
     return wrapper;
   }
 
+  function renderSteps(steps, level) {
+    const checklist = level === 2;
+    const list = element(checklist ? 'ul' : 'ol', checklist ? 'cp-checklist' : 'cp-steps');
+    for (const step of steps) {
+      const item = element('li');
+      if (checklist) {
+        const label = element('label');
+        const check = element('input');
+        check.type = 'checkbox';
+        label.append(check, responseText('span', '', step));
+        item.append(label);
+      } else item.append(responseText('span', '', step));
+      list.append(item);
+    }
+    if (!checklist) return list;
+    const counter = element('p', 'cp-checklist-count');
+    counter.setAttribute('role', 'status');
+    const refresh = () => {
+      const count = list.querySelectorAll(':checked').length;
+      counter.textContent = count === 1 ? `1 passo su ${steps.length} completato` : `${count} passi su ${steps.length} completati`;
+    };
+    list.addEventListener('change', refresh);
+    refresh();
+    const guide = element('div', 'cp-guide');
+    guide.append(list, counter);
+    return guide;
+  }
+
   function startChat() {
     const form = document.querySelector('#chat-form');
     const input = document.querySelector('#chat-input');
@@ -70,13 +104,20 @@
     const newCase = document.querySelector('#new-case');
     const errorBox = document.querySelector('#chat-error');
     const send = form.querySelector('button');
-    const labels = ['Risposta diretta', 'Guida passo passo', 'Richiesta di assistenza'];
+    const levels = Array.from(document.querySelectorAll('[data-assistant-level]'));
     let caseId = null;
     let actions = null;
     let activeChoices = null;
     let waiting = false;
 
     const scroll = () => messages.scrollTo({ top: messages.scrollHeight });
+
+    function showLevel(level) {
+      for (const item of levels) {
+        if (Number(item.dataset.assistantLevel) === level) item.setAttribute('aria-current', 'step');
+        else item.removeAttribute('aria-current');
+      }
+    }
 
     function busy(value) {
       waiting = value;
@@ -91,6 +132,7 @@
       caseId = null;
       actions = null;
       activeChoices = null;
+      showLevel(null);
       messages.replaceChildren(empty);
       newCase.hidden = true;
       form.hidden = false;
@@ -102,26 +144,52 @@
     function renderTicket(draft, message) {
       const panel = document.querySelector('#ticket-template').content.firstElementChild.cloneNode(true);
       const fields = panel.elements;
-      fields.summary.value = draft.summary;
-      fields.description.value = draft.description;
+      const preview = panel.querySelector('.cp-ticket-preview');
+      const editor = panel.querySelector('.cp-ticket-editor');
+      const edit = panel.querySelector('[data-ticket-edit]');
+      const confirm = panel.querySelector('button[type="submit"]');
+      fields.summary.value = draft.summary || '';
+      fields.description.value = draft.description || '';
       fields.stepsTried.value = (draft.stepsTried || []).join('\n');
       fields.type.value = draft.type;
+      if (!fields.type.value) fields.type.value = 'altro';
       if (/ufficio.*bloccat/i.test(message)) fields.impact.value = 'ufficio';
       if (/\boggi\b/i.test(message)) fields.urgency.value = 'oggi';
       const priority = panel.querySelector('.cp-priority');
-      const refreshPriority = () => {
+      const refreshPreview = () => {
         const high = fields.impact.value === 'ufficio' || fields.urgency.value === 'oggi';
         const medium = fields.impact.value === 'operatore' || fields.urgency.value === 'presto';
-        priority.textContent = `Priorità in coda: ${high ? 'alta' : medium ? 'media' : 'bassa'}`;
+        const value = high ? 'alta' : medium ? 'media' : 'bassa';
+        priority.textContent = `Priorità in coda: ${value}`;
+        const previewPriority = panel.querySelector('[data-ticket-priority]');
+        previewPriority.textContent = value;
+        previewPriority.className = `cp-priority-tag priority-${value}`;
+        const type = panel.querySelector('[data-ticket-type]');
+        type.textContent = fields.type.selectedOptions[0].textContent;
+        type.className = `cp-type-tag type-${fields.type.value}`;
+        panel.querySelector('[data-ticket-summary]').textContent = fields.summary.value;
+        panel.querySelector('[data-ticket-attempts]').textContent = fields.stepsTried.value.trim() || 'Nessun tentativo indicato';
       };
-      refreshPriority();
-      panel.addEventListener('change', refreshPriority);
+      const showEditor = (visible) => {
+        editor.hidden = !visible;
+        preview.hidden = visible;
+        edit.textContent = visible ? 'Anteprima' : 'Modifica';
+        edit.setAttribute('aria-expanded', String(visible));
+      };
+      refreshPreview();
+      showEditor(!fields.summary.value.trim() || !fields.description.value.trim());
+      panel.addEventListener('input', refreshPreview);
+      edit.addEventListener('click', () => {
+        if (!editor.hidden && !panel.reportValidity()) return;
+        showEditor(editor.hidden);
+        if (!editor.hidden) fields.summary.focus();
+      });
       panel.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (waiting) return;
         busy(true);
-        const confirm = panel.querySelector('button');
         confirm.disabled = true;
+        edit.disabled = true;
         const panelError = panel.querySelector('[role="alert"]');
         showError(panelError);
         try {
@@ -133,6 +201,7 @@
         } catch (error) {
           showError(panelError, error);
           confirm.disabled = false;
+          edit.disabled = false;
         } finally {
           busy(false);
           if (form.hidden && !panel.isConnected) newCase.focus();
@@ -144,20 +213,24 @@
 
     function renderActions(result, message) {
       if (result.ticket) return renderTicket(result.ticket, message);
+      const block = element('div');
+      if (result.quizTopic) {
+        const suggestion = element('div', 'cp-quiz-suggestion');
+        suggestion.append(element('strong', '', 'Vuoi fissarlo? Fai un mini-quiz'), link('Fai il ripasso', `/quiz?topic=${encodeURIComponent(result.quizTopic)}`, 'cp-btn cp-btn-secondary'));
+        block.append(suggestion);
+      }
+      if (result.question || result.level === 3) return block;
       const controls = element('div', 'cp-chat-actions');
-      if (result.quizTopic) controls.append(link('Fai un mini-quiz', `/quiz?topic=${encodeURIComponent(result.quizTopic)}`));
-      if (result.question || result.level === 3) return controls;
-      const resolved = button('Ho risolto');
-      const help = button('Serve ancora aiuto');
+      const direct = result.level === 1;
+      const resolved = button(direct ? 'Mi è servito' : 'Ho risolto');
+      const help = button(direct ? 'Ho ancora un dubbio' : 'Serve ancora aiuto');
       resolved.addEventListener('click', async () => {
         if (waiting) return;
         busy(true);
         showError(errorBox);
         try {
           await request('/api/assistant/resolve', { caseId });
-          const quiz = controls.querySelector('a');
           const notice = element('div', 'cp-feedback cp-feedback-success', 'Richiesta risolta.');
-          if (quiz) notice.append(quiz);
           controls.replaceWith(notice);
           form.hidden = true;
         } catch (error) {
@@ -168,14 +241,18 @@
           scroll();
         }
       });
-      help.addEventListener('click', () => submit('Serve ancora aiuto.', true));
+      help.addEventListener('click', () => {
+        if (direct) input.focus();
+        else submit('Serve ancora aiuto.', true);
+      });
       controls.append(resolved, help);
-      return controls;
+      block.prepend(controls);
+      return block;
     }
 
     function renderChoices(choices) {
       if (!Array.isArray(choices)) return null;
-      const controls = element('div', 'cp-chat-actions');
+      const controls = element('div', 'cp-chat-actions cp-choices level-2');
       controls.setAttribute('role', 'group');
       controls.setAttribute('aria-label', 'Risposte suggerite');
       for (const choice of choices) {
@@ -203,15 +280,15 @@
         actions?.remove();
         activeChoices?.remove();
         activeChoices = null;
-        const reply = element('div', 'cp-message cp-message-assistant');
-        reply.append(element('span', `cp-level-tag level-${result.level}`, `Livello ${result.level} · ${labels[result.level - 1]}`));
+        const reply = element('div', `cp-message cp-message-assistant level-${result.level}`);
+        const level = levels[result.level - 1];
+        const badge = element('span', `cp-level-tag level-${result.level}`);
+        badge.append(icon(level.dataset.icon), `Livello ${result.level} · ${level.dataset.label}`);
+        reply.append(badge);
+        showLevel(result.level);
         if (result.mock || result.fallback) reply.append(element('p', 'cp-chat-pending', 'Modalità di riserva'));
         reply.append(responseText('p', 'cp-answer', result.answer));
-        if (result.steps?.length) {
-          const list = element('ol', 'cp-steps');
-          result.steps.forEach((step) => list.append(responseText('li', '', step)));
-          reply.append(list);
-        }
+        if (result.steps?.length) reply.append(renderSteps(result.steps, result.level));
         if (result.question) {
           reply.append(element('p', 'cp-question', result.question));
           activeChoices = renderChoices(result.choices);
@@ -224,7 +301,7 @@
         input.value = '';
         if (result.ticket) {
           form.hidden = true;
-          actions.querySelector('input').focus({ preventScroll: true });
+          actions.querySelector('button[type="submit"]').focus({ preventScroll: true });
         } else input.focus({ preventScroll: true });
       } catch (error) {
         prompt.remove();
