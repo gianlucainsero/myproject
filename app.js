@@ -237,7 +237,7 @@ for (const [fileUrl, filePath] of libFiles) {
 
 // Set up getFileHash so it can be used in pug templates for cache busting
 app.locals.getFileHash = (fileUrl) => getFileHash(fileUrl, libFiles, __dirname);
-app.locals.productName = 'NomeProdotto';
+app.locals.productName = 'Orienta';
 
 /**
  * Analytics IDs needed thru layout.pug; set as express local so we don't have to pass them with each render call
