@@ -1,0 +1,413 @@
+# MANUALE operativo collegamento diretto BKIT SIOPE PLUS
+
+**Software:** PRODOTTO E MODULO (F.00, F.08)
+
+---
+
+## 1. PREMESSA
+
+Il presente documento illustra le fasi operative per l'invio degli ordinativi informatici in tesoreria tramite collegamento diretto con BKIT (flusso OPI).
+
+### 1.1 Normativa di riferimento:
+
+- **Decreto MEF del 25 settembre 2017** – Estensione sperimentazione e avvio a regime, per aziende sanitarie e ospedaliere, delle disposizioni riguardanti lo sviluppo della rilevazione SIOPE, secondo le modalità previste dall'articolo 14, comma 8-bis, della legge 31 dicembre 2009, n. 196
+- **Decreto MEF del 14 giugno 2017** – Sperimentazione e avvio a regime per gli enti territoriali delle disposizioni riguardanti lo sviluppo della rilevazione SIOPE, secondo le modalità previste dall'articolo 14, comma 8-bis, della legge 31 dicembre 2009, n. 196 (SIOPE+)
+- **Legge 11 dicembre 2016, n. 232, art. 1, comma 533** – Bilancio di previsione dello Stato per l'anno finanziario 2017 e bilancio pluriennale per il triennio 2017-2019
+- **Legge 31 dicembre 2009, n. 196, art. 14, comma 8-ter** – Legge di contabilità e finanza pubblica
+
+### 1.2 Documentazione disponibile all'indirizzo:
+
+- https://www.bancaditalia.it/compiti/tesoreria/plus-siope/index.html
+- Standard OPI e Gruppo di Lavoro | Agenzia per l'Italia digitale (agid.gov.it)
+
+---
+
+## 2. PREREQUISITI
+
+Release 7.01 di cityware e cwonline ed aver superato il collaudo con BKIT. (esiste apposita guida rif. Manuale_Collaudo_siope_plus)
+
+---
+
+## 3. FASI OPERATIVE
+
+I flussi contenenti gli ordinativi da inviare in tesoreria, tramite BKIT, vengono creati secondo le attuali modalità nell'applicativo CWOL (rif. documento 2018_02_regole_SIOPE_Plus).
+
+Una volta creati sulla piattaforma cityware vengono messi a disposizione sul cruscotto cwonline.siope plus accedendovi secondo le modalità di seguito illustrate.
+
+### 3.1 Accesso al software
+
+Accedere a cwonline inserendo utente e password (solitamente le credenziali sono le stesse di cityware, in alternativa chiedere al CED).
+
+[Immagine: Schermata di login cwonline con campi Nome Utente, Password e selezione Ente]
+
+Dopo aver inserito 'Nome utente' e password viene visualizzato il menù principale di cwonline. Da qui aprire il programma 'cruscotto siope plus' secondo le indicazioni seguenti. Si aprirà la finestra che consentirà di gestire tutte le fasi necessarie per firmare, inviare e ricevere gli esiti su ordinativi inoltrati alla tesoreria tramite BKIT.
+
+[Immagine: Percorso di navigazione nel menu: Servizi Economici > 10. Finanziaria > 55. SiopePlus > 10. Cruscotto]
+
+In alternativa è possibile navigare tramite app.center.
+
+[Immagine: App Center con icone Finanziaria, Cruscotto, Situazione ordinativi, Giornale di Cassa]
+
+Il cruscotto è suddiviso in 3 parti:
+
+[Immagine: Cruscotto SIOPE Plus con tre sezioni principali]
+
+1. **Sezione 1 (Ente)** – In questa sezione troviamo le funzionalità che l'Ente deve eseguire prima di inoltrare i flussi a BKIT (Firma ed invio). Contiene: "Flussi da firmare" e "Flussi da inviare".
+
+2. **Sezione 2 (Banca d'Italia / Banca Tesoreria)** – In questa sezione troviamo i flussi inviati a BKIT e/o alla tesoreria, inquadrati in base allo stato e agli esiti ricevuti da BKIT e/o Tesoreria. Contiene: "Flussi in lavorazione (privi di esito)", "Flussi rifiutati", "Flussi accettati con warning", "Flussi in consegna alla tesoreria", "Flussi accettati dal tesoriere", "Flussi rifiutati dal tesoriere".
+
+3. **Sezione 3 (Operazioni su ordinativi)** – In questa sezione troviamo il dettaglio degli ordinativi presenti nei flussi consegnati in tesoreria ed aggiornati dagli esiti applicativi forniti dalla tesoreria stessa. Contiene: "In attesa di essere acquisite dal tesoriere", "Acquisite dal Tesoriere e in lavorazione", "Scartate dal Tesoriere", "Eseguite dal Tesoriere".
+
+### 3.2 Firma flussi
+
+La funzione consente agli utenti autorizzati (FES-41) di firmare i flussi e predisporli per l'invio a BKIT.
+
+Esistono due modalità di firma dei flussi:
+
+a) Firma automatica all'interno dell'Applicativo
+b) Firma esterna all'Applicativo
+
+#### 3.2.1 Firma automatica all'interno dell'Applicativo
+
+Attualmente la funzionalità è possibile mediante la 'Firma Digitale Remota Aruba' e consente di firmare i flussi cumulativamente.
+
+La funzione è disponibile cliccando sull'apposito bottone **"Flussi da firmare"**.
+
+[Immagine: Sezione Ente del cruscotto con bottone "Flussi da firmare" evidenziato]
+
+Nell'esempio vediamo che ci sono 3 flussi in attesa di firma. Cliccando sul bottone si apre la lista con l'elenco dei flussi in attesa di firma.
+
+Selezionare il flusso o i flussi che si intendono firmare e poi premere il bottone **firma**.
+
+[Immagine: Lista flussi con colonne Nr, Nome flusso, Nr. ord., Tot. reversali, Tot. mandati, Posizione, UUID, Visto e bottone "Firma Flussi"]
+
+Premere quindi **"Vai alla Firma Remota"**.
+
+[Immagine: Maschera "Gestione Firma" con elenco documenti da firmare e pulsante "Vai alla Firma Remota"]
+
+Viene aperta la maschera dove inserire nome utente, password e OTP.
+
+[Immagine: Maschera "Autenticazione Firma Remota" con campi Tipo di Firma (Firma Digitale remota in standard XAdES xml), Dominio Autenticazione, Nome Utente, Password, OTP (One Time Pass)]
+
+Premendo conferma il software appone la firma ai flussi selezionati predisponendoli per l'invio a SIOPE PLUS.
+
+#### 3.2.2 Firma esterna all'Applicativo
+
+La firma si compone di 3 fasi:
+
+1. Download file da firmare;
+2. Firma esterna a cwonline secondo standard XADES (mediante apposito Software);
+3. Upload file firmato.
+
+La funzione è disponibile cliccando sull'apposito bottone **"Flussi da firmare"**.
+
+[Immagine: Sezione Ente del cruscotto con bottone "Flussi da firmare" evidenziato]
+
+Nell'esempio vediamo che ci sono 3 flussi in attesa di firma. Cliccando sul bottone si apre la lista con l'elenco dei flussi in attesa di firma.
+
+Selezionare il o i flussi che si intendono firmare e poi premere il bottone **firma**.
+
+[Immagine: Lista flussi con bottone "Firma Flussi" evidenziato]
+
+Viene aperta la maschera che permette di gestire il download del file da firmare ed il successivo caricamento.
+
+Premere quindi **'Scarica tutti'** (i flussi selezionati per la firma vengono scaricati sulla cartella di download associata al browser).
+
+[Immagine: Maschera "Gestione Firma" con pulsante "Scarica tutti" evidenziato]
+
+Eseguire la firma dei flussi scaricati secondo lo standard XADES (mediante software ENTE).
+
+E successivamente caricare i flussi firmati nell'Applicativo come indicato di seguito.
+
+[Immagine: Maschera "Gestione Firma" con pulsante "Carica tutti" evidenziato e finestra "Carica file firmati"]
+
+Poi premere **ok** e **conferma**.
+
+**Superati tutti i controlli di firma il flusso viene posto nello stato da 'Inviare' in BKIT.**
+
+> **Nota:** È inoltre possibile visualizzare il contenuto ed il riepilogo dei flussi che si stanno firmando mediante l'apposita icona.
+
+### 3.3 Invio flussi verso BKIT
+
+I flussi regolarmente firmati possono essere inviati tramite apposita funzione raggiungibile come di seguito indicato:
+
+[Immagine: Sezione Ente del cruscotto con bottone "Flussi da inviare" evidenziato]
+
+Cliccare su **flussi da inviare**.
+
+E scegliere il o i flussi da inviare a BKIT.
+
+[Immagine: Lista flussi con stato "Da inviare" e pulsante "Invia Flussi" evidenziato]
+
+L'invio avvenuto regolarmente viene confermato da una finestra che riporta il progressivo flusso assegnato da BKIT.
+
+[Immagine: Finestra "Esito invio documenti" con messaggio "File inviato: Flusso_OPI_...xml. Progressivo..."]
+
+Le operazioni da effettuare dall'ente per l'invio degli ordinativi in tesoreria terminano qui.
+
+Nei paragrafi seguenti vengono descritte le operazioni da fare per scaricare gli esiti ricevuti da parte di BKIT e tesoreria e per monitorare lo stato degli ordinativi spediti in Banca.
+
+### 3.4 Controllo esiti
+
+La Funzione consente di acquisire gli esiti sui flussi inviati in tesoreria.
+
+Per scaricare gli esiti premere il bottone **"Scarica esiti"**.
+
+[Immagine: Cruscotto con pulsante "Scarica esiti" evidenziato in alto a destra]
+
+Tale operazione legge gli esiti sui flussi e/o gli ordinativi ricevuti da BKIT e tesoreria ed aggiorna la situazione dei flussi e degli ordinativi stessi all'interno dell'Applicativo.
+
+Occorre porre particolare attenzione alle segnalazioni ricevute e presenti nei bottoni sotto indicati in quanto queste comporterebbero la non regolare esecuzione degli ordinativi da parte della Banca Tesoreria.
+
+[Immagine: Sezioni "Flussi rifiutati", "Flussi accettati con warning", "Flussi rifiutati dal tesoriere", "Scartate dal Tesoriere" evidenziate]
+
+Dopo aver cliccato sui vari bottoni è possibile visualizzare le segnalazioni ricevute sia a livello di flussi:
+
+[Immagine: Lista flussi con colonne Esito S+, Esito S+ letto, Progressivo SIOPE+, Esito BT, Esito BT letto]
+
+Che a livello di singoli ordinativi:
+
+[Immagine: Lista ordinativi con colonne Esito esig. BT, Esito esig. BT letto, Esito esec. BT, Esito esec. BT letto, Conto, Es. esec. BT letto, Nr. flusso]
+
+Vi è poi la possibilità di archiviare le varie segnalazioni di errore segnandole come già lette.
+
+In base al tipo di segnalazione occorre procedere alle sistemazioni all'interno dell'applicativo di contabilità e procedere con l'invio di nuovi flussi contenenti le modifiche effettuate.
+
+### 3.5 Iter
+
+Dalla lista degli ordinativi si può consultare l'iter dei flussi e dei singoli ordinativi (con tutte le azioni e relativi attori) mediante le 2 funzioni di seguito indicate.
+
+[Immagine: Lista ordinativi con icone per iter flusso (1) e iter ordinativo (2)]
+
+#### 3.5.1 Iter flusso
+
+[Immagine: Finestra "Dati pacchetto" con Numero pacchetto invio, Data creazione, Numero record, Totale flusso E, Totale flusso U, Flusso firmato da, e sezione "Dettaglio ordinativo" con Progressivo ordinativo, Anno/Nr. ordinativo, Tipo invio, Posizione, Anno/Nr. ordinativo sostituito, e sezione "Audit"]
+
+#### 3.5.2 Iter ordinativo
+
+[Immagine: Finestra "ITER" con Identificativo flusso, Numero Reversale, Progressivo, Tipo operaz., Stato, e tabella con Evento, Data Ora, Nominativo, Num pac. contenente eventi]
+
+### 3.6 Visualizzazione ordinativi e quietanze
+
+La Funzione consente di Visualizzare gli ordinativi e/o le quietanze degli stessi ed è disponibile dal cruscotto, dal programma 'Situazione Ordinativi' e dalla visualizzazione del 'Giornale di Cassa' (in quest'ultimo caso mediante la funzione Ricerca movimenti sui Giornali).
+
+Dopo aver selezionato gli ordinativi di interesse premere il relativo bottone in base alla funzione che si vuole effettuare:
+
+[Immagine: Lista ordinativi con pulsanti "Genera Singola Quietanza" e "Visualizza Singolo Ordinativo"]
+
+[Immagine: Finestra "Stampa Quietanza Ordinativi" con intestazione "REVERSAL numero... Estratto Giornale di Cassa del... firmato digitalmente dal Tesoriere"]
+
+> **N.B.** I dati presenti nella quietanza vengono reperiti effettuando un estratto del giornale di cassa restituito dal tesoriere tramite BKIT.
+
+La funzione **Lista Movimenti** (1) consente di visualizzare le righe del giornale di cassa relative all'ordinativo mentre la Funzione **PDF** (2) consente di salvare il documento in formato PDF.
+
+Nell'esempio sopra riportato sono state descritte le funzionalità della stampa quietanza ma le stesse funzioni sono disponibili anche nella stampa dell'ordinativo.
+
+### 3.7 Giornale di cassa
+
+La Funzione consente di ricevere da BKIT il giornale di cassa messo a disposizione dalla Banca Tesoreria ai fini dell'aggiornamento valute sugli ordinativi ed import dei provvisori sull'applicativo dell'Ente.
+
+Dopo aver eseguito l'accesso all'Applicativo il programma è raggiungibile nella seguente maniera:
+
+[Immagine: Percorso di navigazione: Servizi Economici > 10. Finanziaria > 55. SiopePlus > 30. Giornale di Cassa]
+
+#### 3.7.1 Scarico giornale di Cassa
+
+Premere sul bottone **"Scarica Giornale di Cassa da Siope Plus"** come indicato di seguito. Il Software provvederà a scaricare in base alle date indicate i giornali di cassa non ancora scaricati (si tenga presente che solitamente tutti i giorni le Banche Tesorerie mettono a disposizione dell'Ente il giornale di cassa della giornata precedente).
+
+[Immagine: Programma Giornale di Cassa con pulsante "Scarica Giornale di Cassa da Siope Plus" e campi data "dal" e "al"]
+
+#### 3.7.2 Import provvisori ed aggiornamento date effettivo pag./risc. su ordinativi
+
+La funzione consente all'ente di caricare in automatico sul proprio Applicativo i provvisori non ancora regolarizzati e di aggiornare le date di effettivo pagamento/riscossione sugli ordinativi inviati.
+
+Dopo aver selezionato il o i giorni interessati per l'aggiornamento premere sul bottone **'Aggiornamento Movimenti in "cityfinancing'"**.
+
+[Immagine: Lista Giornale di Cassa con checkbox selezionate e pulsante "Aggiorna Movimenti in City-Financing" evidenziato]
+
+#### 3.7.3 Consultazione giornale di cassa e saldi
+
+La consultazione è possibile in base alle funzioni disponibili sui singoli giorni le cui funzionalità sono illustrate al passaggio del cursore del mouse.
+
+[Immagine: Lista Giornale di Cassa con icone di dettaglio per ogni giorno e tooltip di descrizione]
+
+#### 3.7.4 Stampa giornale di cassa
+
+La stampa del giornale di cassa è disponibile mediante apposite icone presente sui singoli giorni.
+
+[Immagine: Lista Giornale di Cassa con icona di stampa evidenziata]
+
+Verrà prodotta la stampa come fac-simile sotto riportato:
+
+[Immagine: Stampa "Giornale di Cassa di Comune di..." con colonne Conto, Tipo Documento, Numero, Data, Pag, Tipo Operazione, Importo, Cliente, C.R. Interno, C.R. Oppe]
+
+Mediante la funzione **PDF** è possibile creare il PDF con la stampa.
+
+#### 3.7.5 Creazione XML con il giornale di cassa
+
+La funzione illustrata di seguito crea un file XML con all'interno le informazioni del giornale di cassa relativo ai giorni selezionati.
+
+[Immagine: Lista Giornale di Cassa con pulsante "Esporta XML non Firmato" evidenziato]
+
+#### 3.7.6 Verifica giornale di cassa
+
+La funzione permette di monitorare la situazione dei vari giornali di cassa scaricati e controllare eventualmente le giornate con anomalie.
+
+[Immagine: Lista Giornale di Cassa con pulsante "Controlla Giornale di Cassa" evidenziato]
+
+Dopo aver premuto sul pulsante viene visualizzato il calendario con la situazione delle varie giornate:
+
+[Immagine: Calendario Giornale di Cassa (luglio 2018) con celle colorate: verde per "Giornale Scaricato (X Pagine)" con data e utente, rosso per "Giornale NON scaricato", giallo per sabato/domenica]
+
+### 3.8 Prospetto Disponibilità Liquide
+
+Il prospetto delle Disponibilità Liquide è un'informativa prevista dall'Allegato B del Decreto MEF del 9 giugno 2016 e consente di scaricare da BKIT l'XML messo a disposizione dalla Banca Tesoreria ai fini della stampa del prospetto stesso.
+
+Dopo aver eseguito l'accesso all'Applicativo il programma è raggiungibile nella seguente maniera:
+
+[Immagine: Percorso di navigazione: Servizi Economici > 10. Finanziaria > 55. SiopePlus > 40. Disponibilità Liquide]
+
+#### 3.8.1 Ricezione Prospetto Disponibilità Liquide
+
+Premere sul bottone **"Scarica Disponibilità Liquide da Siope Plus"** come indicato di seguito. Il Software provvederà a scaricare, in base alle date indicate, i prospetti messi a disposizione dalla Tesoreria e non ancora scaricati (si tenga presente che solitamente il prospetto viene inviato mensilmente).
+
+[Immagine: Programma Disponibilità Liquide con pulsante "Scarica Disponibilità Liquide da Siope Plus" e campi data "dal" e "al"]
+
+#### 3.8.2 Stampa Prospetto Disponibilità Liquide
+
+La funzione consente stampare il Prospetto Disponibilità Liquide come citato dall'Allegato B del Decreto MEF del 9 giugno 2016.
+
+Per Effettuare la Stampa, dopo aver selezionato il mese di interesse, premere sull'Apposito Pulsante **"Stampa Prospetto Disponibilità Liquide"**.
+
+[Immagine: Lista Disponibilità Liquide con pulsante "Stampa Prospetto Disponibilità Liquide" evidenziato]
+
+Ed il software produce la stampa del modello:
+
+[Immagine: Stampa "PROSPETTO DELLE DISPONIBILITÀ LIQUIDE" con sezioni "CONTO CORRENTE DI TESORERIA" (codici 1100, 1200, 1300, 1400, 1450) e "FONDI DELL'ENTE PRESSO IL TESORIERE AL DI FUORI DEL CONTO DI TESORERIA" (codice 2100)]
+
+Il bottone **PDF** consente di avere il modello in formato PDF.
+
+#### 3.8.3 Visualizzazione XML Prospetto Disponibilità Liquide
+
+La Funzione consente di visualizzare ed eventualmente Salvare il file XML del Prospetto Disponibilità Liquide ricevuto dalla Banca Tesoreria.
+
+[Immagine: Lista Disponibilità Liquide con pulsante "Visualizza XML Disponibilità Liquide" evidenziato]
+
+#### 3.8.4 Visualizzazione Firmatario XML Prospetto Disponibilità Liquide
+
+La Funzione consente di visualizzare il nome del Firmatario del flusso ricevuto dall'ente.
+
+[Immagine: Lista Disponibilità Liquide con pulsante "Firmatario Flusso Disponibilità Liquide" evidenziato]
+
+---
+
+## 4. Monitoraggio flussi e operazioni su ordinativi
+
+Le funzioni sotto descritte consentono di visualizzare la messaggistica ricevuta da BKIT e/o Banca tesoreria sui flussi spediti.
+
+Di seguito vengono descritte le icone usate che offrono una visione immediata dei vari stati e, al passaggio del mouse, consentono di visualizzare informazioni più dettagliate circa la messaggistica ricevuta da Siope plus.
+
+| Icona | Descrizione |
+|-------|-------------|
+| ❓ | In attesa di esito – Esito non ancora comunicato |
+| ✔️ | OK - flusso acquisito oppure operazione su ordinativo andata a buon fine |
+| ❌ | KO - flusso scartato oppure operazione su ordinativo non andato a buon fine |
+| ⚠️ | WARNING – presenza di messaggi di avvertimento – operazione comunque andata a buon fine ma da verificare |
+| 📄 | Permette la visualizzazione dell'xml così come arrivato all'ente da BKIT |
+| 🔢 | Un numero di colore verde indica che trattasi di reversale, rosso di mandato |
+
+### 4.1 Monitoraggio flussi
+
+Le funzioni sono disponibili dalla lista dei flussi dal cruscotto siope plus (in base al loro stato) e consentono di visualizzare sia gli esiti ricevuti da BKIT (1) che quelli ricevuti dalla Banca tesoreria (2).
+
+[Immagine: Lista flussi con colonne Esito S+, Esito S+ letto (1), Progressivo SIOPE+, Esito BT, Esito BT letto (2)]
+
+Per ogni esito è disponibile la possibilità di archiviare il messaggio come letto in modo da non visualizzarlo le volte successive. Per archiviare il messaggio è sufficiente cliccare sulla casella:
+
+1. **Esito S+ letto** (se si vuole archiviare il messaggio relativo all'esito ricevuto da BKIT)
+2. **Esito BT letto** (se si vuole archiviare il messaggio relativo all'esito ricevuto dalla Banca Tesoreria)
+
+### 4.2 Monitoraggio operazioni su ordinativi
+
+Le funzioni sono disponibili dalla lista degli ordinativi richiamata dal cruscotto siope plus in base al loro stato (richiamabile anche dal programma 'Situazione ordinativi') e consentono di visualizzare gli esiti applicativi forniti dalla Banca tesoreria.
+
+Per ogni operazione sugli ordinativi (identificata dal tipo operazione) sono disponibili almeno 2 esiti.
+
+- Il primo **(1)** identifica se l'operazione richiesta è stata acquisita o meno dalla procedura della tesoreria
+- Il secondo **(2)** indica se l'operazione richiesta è stata eseguita o meno.
+
+[Immagine: Lista ordinativi con colonne Esito esig. BT (1), Esito esig. BT letto, Esito esec. BT (2), Esito esec. BT letto]
+
+Anche qui vale il discorso delle icone standard e la possibilità di archiviare i messaggi già letti come descritto nella sezione monitoraggio flussi.
+
+---
+
+## 5. Visto su flussi
+
+La funzione consente agli utenti autorizzati di apporre un visto pre firma sui flussi prima della firma e dell'invio a BKIT.
+
+L'operazione **non è vincolante** ai fini della firma ma serve solamente all'utente firmatario come criterio di filtro sui flussi.
+
+È una funzionalità opzionale e deve essere attivata dalle tabelle di collegamento tesoreria disponibili nel menu **'Tabelle-Configurazioni-Definizioni-parametri Generali'**.
+
+[Immagine: Percorso di navigazione: Servizi Economici > 10. Finanziaria > 10. Configurazioni > 10. Definizioni e operatività - Parametri Generali]
+
+[Immagine: Tab "Tesoreria" con sezione "Personalizzazione modo valorizzazione campi" e campo "Gestione visto" con checkbox]
+
+Dopo aver attivato la funzione è necessario autorizzare gli utenti vistatari e firmatari sulla tabella **'Autorizzazioni Utenti o Ruoli'**.
+
+[Immagine: Tabella autorizzazioni FES con FES-40 "Assegna visto a flussi per SIOPE+" e FES-41 "Upload flussi firmati x SIOPE+"]
+
+> **Note:** La FES-40 'Assegna visto a flussi per SIOPE+' accetta anche il valore **'C=Cancellazione'** per permettere la cancellazione del visto sui flussi non ancora firmati.
+
+Una volta attivata la funzione sul cruscotto Siope plus apparirà un nuovo 'contenitore' chiamato **Flussi da vistare**.
+
+[Immagine: Cruscotto con sezione Ente contenente "Flussi da vistare", "Flussi da firmare", "Flussi da inviare"]
+
+Cliccando sul bottone vengono visualizzati i flussi in attesa di Firma e non ancora Vistati e se l'utente risulta autorizzato si ha la possibilità di vistare gli stessi e prepararli per la firma.
+
+[Immagine: Lista flussi con pulsante "Vista Flussi" evidenziato]
+
+Con l'attivazione del visto l'utente firmatario può scegliere se firmare solamente i flussi vistati o meno mediante l'opzione presente nella colonna **'Visto'**.
+
+[Immagine: Lista flussi con colonna "Visto" e "Utenze Visto" con checkbox]
+
+---
+
+## 6. Doppia Firma
+
+La funzione è utilizzata dagli Enti che, nel regolamento di Contabilità, hanno previsto 2 firme prima dell'invio del flusso a BKIT.
+
+È possibile attivare la doppia firma sia sui mandati che sulle reversali oppure solamente sui mandati lasciando le reversali a firma singola.
+
+La funzionalità va attivata dalle tabelle di collegamento tesoreria disponibili nel menù **'Tabelle-Configurazioni-Definizioni-parametri Generali'**.
+
+[Immagine: Percorso di navigazione: Servizi Economici > 10. Finanziaria > 10. Configurazioni > 10. Definizioni e operatività - Parametri Generali]
+
+È possibile attivare la doppia firma mediante le opzioni seguenti:
+
+| Opzione | Descrizione |
+|---------|-------------|
+| **Doppia Firma** | La doppia firma è obbligatoria sia sui mandati che sulle reversali |
+| **Firma Singola su Reversali e doppia su Mandati** | La doppia firma è obbligatoria sui mandati |
+| **Visto + Firma Singola su Reversali e doppia su Mandati** | La doppia firma è obbligatoria sui mandati |
+
+[Immagine: Tab "Tesoreria" con dropdown "Iter per invio flussi" contenente le opzioni: Firma singola, Visto + firma singola, Doppia firma, Firma singola su Reversali e doppia su Mandati, Visto + Firma singola su reversali e doppia su Mandati]
+
+Dopo aver attivato la funzione è necessario autorizzare gli utenti firmatari sulla tabella **'Autorizzazioni Utenti'** o sulle autorizzazioni per Ruolo.
+
+[Immagine: Tabella autorizzazioni FES con FES-41 "Upload flussi firmati x SIOPE+" con valori G, 1, 2, 3, 4]
+
+> **Note:** La FES-41 'Upload flussi firmati per SIOPE+' può assumere i seguenti valori:
+>
+> - **G** = L'Utente che possiede tale autorizzazione può essere il primo e/o il secondo firmatario
+> - **1** = L'Utente che possiede tale autorizzazione è colui che appone la prima firma
+> - **2** = L'Utente che possiede tale autorizzazione è colui che appone la seconda firma
+> - **3** = L'Utente che possiede tale autorizzazione è colui che appone la prima firma sulle reversali e la seconda sui mandati
+> - **4** = L'Utente che possiede tale autorizzazione è colui che appone solo la seconda firma sui mandati
+
+Una volta attivata la funzione di doppia firma sul cruscotto Siope plus appariranno due 'contenitori' chiamati **'Flussi in attesa di prima Firma'** e **'Flussi in attesa di seconda Firma'**.
+
+[Immagine: Cruscotto con sezione Ente contenente "Flussi in attesa di prima Firma", "Flussi in attesa di seconda Firma", "Flussi da inviare"]
+
+Cliccando sugli appositi bottoni vengono visualizzati i flussi in attesa di Firma e compatibilmente con le proprie autorizzazioni l'utente ha la possibilità di firmare gli stessi secondo le modalità descritte nel paragrafo 'Firma Flussi'.
