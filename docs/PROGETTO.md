@@ -1,7 +1,8 @@
 # Contesto del progetto (Hackathon Responsible, Palitalsoft × Unicam)
 
 > Questo file è richiamato in cima ad AGENTS.md. Lo legge Codex, insieme alla mappa di Hackathon Starter che c'è in AGENTS.md.
-> Team: Gianluca (pitch e contenuti), Mattia (design), Flavius (sviluppo, con Codex). Claude lavora in parallelo sul **modulo IA** (`ai/`).
+> Aggiornamento 11/11. Le priorità sono chiudere il ciclo con «Crea ripasso», indicizzare tutti i manuali, accogliere il nuovo dipendente e rendere robusta la demo.
+> Team: Gianluca e Claude (pitch e contenuti), Mattia (design), Flavius con Codex (sviluppo, incluso il modulo IA).
 > **Scadenza: giovedì 12/11 ore 15:00.** Si consegnano le slide e il link a questo repository. Il prototipo deve funzionare in una demo dal vivo di circa 4 minuti.
 
 ---
@@ -26,12 +27,12 @@ Area della demo: **Servizi Demografici**. La base di conoscenza sono i manuali i
 
 | Parte | Chi | Dove |
 |---|---|---|
-| Modulo IA: ricerca nei manuali, prompt, logica dei 3 livelli, generazione quiz | **Claude** | `ai/` (Flavius non lo modifica: per qualsiasi bisogno lo segnala a Gianluca) |
-| Indice dei manuali pre-generato | **Claude** | `data/` |
+| Modulo IA: ricerca nei manuali, prompt, logica dei 3 livelli, generazione di lezioni e quiz | **Flavius + Codex** | `ai/` ([documentazione](../ai/README.md)) |
+| Indici dei manuali | **Flavius + Codex** | `data/` |
 | Route, controller, modelli Mongo, viste Pug, interfaccia | **Flavius + Codex** | il resto del repo |
 | Dati finti per il cruscotto (seed) | **Flavius + Codex** | `scripts/seed.js` |
 
-Finché `ai/` non è pronto, **lavorare contro uno stub** che restituisce risposte finte con lo stesso formato del contratto qui sotto. Così l'interfaccia procede in parallelo.
+Il modulo IA usa Gemini e offre una modalità di riserva basata sui manuali. Il contratto qui sotto vale in entrambe le modalità.
 
 ## 4. Contratto tra interfaccia e modulo IA
 
@@ -132,4 +133,4 @@ await generateQuiz({ topic: 'Carte d\'identità', n: 3 });
 
 - Interfaccia e testi **in italiano**, con linguaggio semplice: gli utenti sono operatori comunali non tecnici.
 - Un branch per funzionalità, commit piccoli con messaggi chiari. Fare **pull prima di iniziare** e **push spesso**.
-- Non toccare `ai/` e `data/`: sono di Claude.
+- Seguire [la documentazione del modulo IA](../ai/README.md) per le modifiche a `ai/` e `data/`. Non committare mai segreti.
