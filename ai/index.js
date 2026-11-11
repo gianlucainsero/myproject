@@ -1,6 +1,6 @@
 // Modulo IA: assistente a 3 livelli e generazione quiz, sui manuali indicizzati.
 // API pubblica (vedi AGENTS.md): askAssistant, generateQuiz, search, isAiConfigured
-const { search, listDocs } = require('./search');
+const { search, listDocs, loadIndex } = require('./search');
 const { generateJSON, isConfigured } = require('./llm');
 const P = require('./prompts');
 
@@ -125,12 +125,42 @@ const RE_BUG = /errore|non funziona|non (mi )?stampa|si blocca|bloccat|anomali|c
 const RE_LOST = /non capisco|da dove (parto|partire|inizio|comincio)|non so (come|cosa|da)|aiuto|sono nuov|prima volta|confus/i;
 const RE_URGENT = /elezion|elettoral|seggi|liste sezionali|carta d.identit|cie|sportello|scadenz|oggi|domani|domenica/i;
 
-function extractSteps(text, max = 7) {
-  const lines = text.split('\n').map((l) => l.trim());
-  const steps = lines.filter((l) => /^(\d+[.)]|[-*])\s+/.test(l)).map((l) => l.replace(/^(\d+[.)]|[-*])\s+/, ''));
-  const menu = lines.find((l) => /→/.test(l) && /\*\*/.test(l));
-  const out = menu ? [`Vai al menu ${menu}`, ...steps] : steps;
-  return out.slice(0, max);
+// Tutte le sezioni di un manuale, in ordine (dall'indice completo, non solo quelle trovate dalla ricerca).
+function docChunks(area, file) {
+  const { raw } = loadIndex(area);
+  const doc = raw.docs.find((d) => d.file === file);
+  return doc ? raw.chunks.filter((c) => c.doc === doc.id) : [];
+}
+
+function menuPath(chunks) {
+  for (const c of chunks) {
+    const m = c.text.match(/\*\*([^*\n]*→[^*\n]*)\*\*/);
+    if (m) return m[1].trim();
+  }
+  return null;
+}
+
+function firstSentence(text) {
+  const clean = text
+    .replace(/\[[^\]]*\]/g, ' ') // descrizioni delle schermate
+    .replace(/^[#>|].*$/gm, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const m = clean.match(/^(.{20,220}?[.:;])(\s|$)/);
+  return (m ? m[1] : clean.slice(0, 200)).replace(/:$/, '.');
+}
+
+// Passi leggibili: percorso di menu + una riga per ogni sezione del manuale.
+function stepsFromDoc(chunks, max = 6) {
+  const steps = [];
+  const menu = menuPath(chunks);
+  if (menu) steps.push(`Apri il menu **${menu}**.`);
+  for (const c of chunks) {
+    if (!c.heading || /percorso di navigazione/i.test(c.heading)) continue;
+    steps.push(`**${c.heading}**: ${firstSentence(c.text)}`);
+    if (steps.length >= max) break;
+  }
+  return steps;
 }
 
 function mockAssistant(message, chunks, area) {
@@ -160,14 +190,16 @@ function mockAssistant(message, chunks, area) {
   }
 
   if (RE_LOST.test(message) || !top) {
-    const headings = [...new Set(chunks.filter((c) => top && c.file === top.file).map((c) => c.heading).filter(Boolean))];
+    const all = top ? docChunks(area, top.file) : [];
+    const menu = menuPath(all);
+    const headings = [...new Set(all.map((c) => c.heading).filter((h) => h && !/percorso di navigazione/i.test(h)))];
     return {
       level: 2,
       answer: top
         ? `Nessun problema, procediamo un passo alla volta. La procedura giusta è "${top.title}": ecco le fasi principali.`
         : 'Nessun problema, procediamo un passo alla volta. Dimmi meglio cosa devi fare.',
-      steps: headings.length ? headings.slice(0, 7) : (top ? extractSteps(top.text) : []),
-      question: top ? 'Da quale fase vuoi partire?' : 'Su quale attività ti serve aiuto? Ad esempio: carte d\'identità, cambi di residenza, elezioni, certificati.',
+      steps: [...(menu ? [`Si parte dal menu **${menu}**.`] : []), ...headings.slice(0, 6)],
+      question: top ? `Da quale di questi punti vuoi partire? (${headings.slice(0, 4).join(', ')})` : 'Su quale attività ti serve aiuto? Ad esempio: carte d\'identità, cambi di residenza, elezioni, certificati.',
       sources,
       quizTopic: topic,
       knowledgeGap: !top,
@@ -178,7 +210,7 @@ function mockAssistant(message, chunks, area) {
   return {
     level: 1,
     answer: `Ecco come fare, secondo il manuale "${top.title}".`,
-    steps: extractSteps(chunks.filter((c) => c.file === top.file).sort((a, b) => /→/.test(b.text) - /→/.test(a.text)).map((c) => c.text).join('\n')),
+    steps: stepsFromDoc(docChunks(area, top.file)),
     question: null,
     sources,
     quizTopic: topic,
