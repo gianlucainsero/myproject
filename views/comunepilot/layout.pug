@@ -1,0 +1,53 @@
+doctype html
+html(lang='it')
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1')
+    meta(name='csrf-token', content=_csrf)
+    title= `${title} | ${productName}`
+    link(rel='icon', href='/palitalsoft.png', type='image/png')
+    link(rel='preconnect', href='https://fonts.googleapis.com')
+    link(rel='preconnect', href='https://fonts.gstatic.com', crossorigin)
+    link(rel='stylesheet', href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Titillium+Web:wght@600;700&display=swap')
+    link(rel='stylesheet', href='/css/main.css?v=' + getFileHash('/css/main.css'))
+    link(rel='stylesheet', href='/css/comunepilot.css?v=' + getFileHash('/css/comunepilot.css'))
+  body.cp-app
+    a.cp-skip(href='#contenuto') Vai al contenuto
+    mixin navLink(key, label, href, icon)
+      - const active = page === key || (key === 'home' && ['lesson', 'quiz', 'manual'].includes(page));
+      a.cp-nav-link(href=href, class=active ? 'is-active' : '', aria-current=active ? 'page' : undefined)
+        i.fa-solid(aria-hidden='true', class=icon)
+        span= label
+    header.cp-header
+      a.cp-brand(href='/', aria-label=`${productName}, pagina iniziale`)
+        img(src='/palitalsoft.png', width='160', height='22', alt='Palitalsoft')
+        span.cp-brand-divider(aria-hidden='true')
+        span= productName
+      .cp-header-actions
+        span.cp-demo-badge
+          span(aria-hidden='true')
+          | Ambiente demo
+        a.cp-account(href=user ? '/account' : '/login', aria-label=user ? 'Il mio account' : 'Accedi')
+          i.fa-solid.fa-user(aria-hidden='true')
+          span= user ? 'Account' : 'Accedi'
+    .cp-frame
+      aside.cp-sidebar
+        .cp-workspace
+          .cp-workspace-icon
+            i.fa-solid.fa-landmark(aria-hidden='true')
+          div
+            strong Comune di Vallechiara
+            span Servizi Demografici
+        nav.cp-navigation(aria-label='Navigazione principale')
+          p.cp-nav-label Spazio operatore
+          +navLink('home', 'Il mio percorso', '/', 'fa-book-open')
+          +navLink('assistant', 'Assistente', '/assistente', 'fa-comment-dots')
+          p.cp-nav-label Spazio formatore
+          +navLink('dashboard', 'Cruscotto', '/palitalsoft', 'fa-chart-column')
+        .cp-sidebar-footer
+          span.cp-status-dot(aria-hidden='true')
+          | Prototipo hackathon
+      main#contenuto.cp-main(tabindex='-1')
+        .cp-content
+          block content
+    block scripts

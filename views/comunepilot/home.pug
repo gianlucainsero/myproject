@@ -1,0 +1,74 @@
+extends layout
+
+block content
+  - const cie = latest ? Math.round((100 * latest.score) / latest.questions.length) : null;
+  - const skills = [{ label: 'Anagrafe', value: 72, example: true }, { label: 'Carte d’identità', value: cie }, { label: 'Elettorale', value: 45, example: true }, { label: 'Stato civile', value: null }];
+  header.cp-page-intro
+    h1 Buongiorno
+    p Servizi Demografici · Comune di Vallechiara
+
+  section.cp-review-banner.cp-card(aria-labelledby='ripassi-title')
+    .cp-feature-icon
+      i.fa-solid.fa-play(aria-hidden='true')
+    div
+      h2#ripassi-title Oggi hai 2 ripassi da fare
+      p Carte d’identità ed Elettorale.
+    a.cp-btn.cp-btn-white(href='/quiz')
+      | Inizia il ripasso
+      i.fa-solid.fa-arrow-right(aria-hidden='true')
+
+  .cp-home-grid
+    section.cp-card.cp-document(aria-labelledby='skills-title')
+      h2#skills-title Le mie competenze
+      p In base ai ripassi completati.
+      each skill in skills
+        .cp-skill
+          .cp-skill-label
+            strong= skill.label
+            span.cp-skill-status= skill.value === null ? 'Da iniziare' : skill.value >= 67 ? 'Buono' : 'Da ripassare'
+            if skill.example
+              span.cp-sample-mark Dati simulati
+            if skill.value !== null
+              span.cp-skill-score= `${skill.value}%`
+          progress.cp-progress(value=skill.value === null ? 0 : skill.value, max='100', aria-label=skill.label)
+      if latest
+        p= `Ultimo mini-quiz CIE: ${latest.score} su ${latest.questions.length} risposte corrette.`
+
+    .cp-home-side
+      section.cp-card.cp-document(aria-labelledby='path-title')
+        h2#path-title Il mio percorso
+        p I moduli del tuo Comune.
+        ul.cp-module-list
+          li
+            .cp-feature-icon
+              i.fa-solid.fa-book-open(aria-hidden='true')
+            div
+              strong Anagrafe di base
+              small Dati simulati
+            span.cp-module-status.is-complete Completato
+          li
+            .cp-feature-icon
+              i.fa-regular.fa-id-card(aria-hidden='true')
+            div
+              a.cp-text-link(href='/formazione/cie') Carta d’identità elettronica
+              small Microlezione con video e quiz
+            span.cp-module-status(class=latest ? 'is-complete' : '')= latest ? 'Completato' : 'Da iniziare'
+          li
+            .cp-feature-icon
+              i.fa-solid.fa-list-check(aria-hidden='true')
+            div
+              strong Elezioni e liste elettorali
+              a.cp-text-link(href='/quiz?topic=Elezioni%20e%20liste%20elettorali') Fai il ripasso elettorale
+            span.cp-module-status.is-active In corso
+          li
+            .cp-feature-icon
+              i.fa-solid.fa-file-lines(aria-hidden='true')
+            strong Stato civile
+            span.cp-module-status Da iniziare
+        a.cp-btn.cp-btn-outline.cp-path-cta(href='/formazione/cie') Continua il percorso
+
+      section.cp-card.cp-help(aria-labelledby='aiuto-title')
+        .cp-feature-icon
+          i.fa-regular.fa-comments(aria-hidden='true')
+        h2#aiuto-title Hai un dubbio?
+        a.cp-btn.cp-btn-help(href='/assistente') Chiedi all’assistente

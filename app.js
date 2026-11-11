@@ -85,7 +85,7 @@ else numberOfProxies = 0;
 /**
  * Controllers (route handlers).
  */
-const homeController = require('./controllers/home');
+const comunePilotController = require('./controllers/comunepilot');
 const userController = require('./controllers/user');
 const apiController = require('./controllers/api');
 const aiController = require('./controllers/ai');
@@ -237,6 +237,7 @@ for (const [fileUrl, filePath] of libFiles) {
 
 // Set up getFileHash so it can be used in pug templates for cache busting
 app.locals.getFileHash = (fileUrl) => getFileHash(fileUrl, libFiles, __dirname);
+app.locals.productName = 'NomeProdotto';
 
 /**
  * Analytics IDs needed thru layout.pug; set as express local so we don't have to pass them with each render call
@@ -248,7 +249,17 @@ app.locals.FACEBOOK_PIXEL_ID = process.env.FACEBOOK_PIXEL_ID ? process.env.FACEB
 /**
  * Primary app routes.
  */
-app.get('/', homeController.index);
+app.get('/', comunePilotController.home);
+app.get('/formazione/cie', comunePilotController.lesson);
+app.get('/assistente', comunePilotController.assistant);
+app.get('/quiz', comunePilotController.quiz);
+app.get('/manuali/:id', comunePilotController.manual);
+app.get('/palitalsoft', comunePilotController.dashboard);
+app.post('/api/assistant', comunePilotController.ask);
+app.post('/api/assistant/resolve', comunePilotController.resolve);
+app.post('/api/tickets', comunePilotController.ticket);
+app.post('/api/quiz', comunePilotController.startQuiz);
+app.post('/api/quiz/attempt', comunePilotController.answerQuiz);
 app.get('/login', userController.getLogin);
 app.post('/login', loginLimiter, userController.postLogin);
 app.get('/login/verify/:token', loginLimiter, userController.getLoginByEmail);

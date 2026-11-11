@@ -190,3 +190,38 @@ pass — they're what protects you from breaking the framework while
 customizing it. `test/e2e/` and `test/e2e-nokey/` are **per-integration**
 tests; each one only matters if you're keeping that integration, and should
 be deleted alongside it.
+
+## Hackathon Team Workflow
+
+These rules apply to Codex and to any developer working in this repository.
+
+### Security
+
+- Do not read or show credential values unless they are strictly necessary for the task.
+- Do not print the complete contents of `.env` files or analogous credential files.
+- Never place secrets in source code, logs, commits, or pull requests.
+- Do not modify credential files without explicit authorization.
+
+### Git
+
+- Do not modify `main` directly; use a dedicated branch for each feature or fix.
+- Check the current branch and `git status` before every intervention.
+- Do not create commits, push, merge, rebase, or perform destructive resets without explicit authorization.
+- Do not overwrite changes made by other developers.
+- Coordinate changes to shared files before editing them, especially `app.js`, `package.json`, `package-lock.json`, `config/passport.js`, and shared account views.
+
+### Development
+
+- Before implementing a feature, propose a concise plan.
+- Modify only the files necessary for the task.
+- Avoid additional dependencies unless they are essential.
+- Do not edit `package-lock.json` manually; use the appropriate npm command when dependency changes are authorized.
+- Do not edit generated files manually.
+- Prefer solutions that are simple, functional, and verifiable.
+
+### Testing
+
+- Use `npm run lint-check` for non-mutating lint and formatting checks.
+- Run the relevant tests after making changes.
+- Do not run tests that require real credentials without authorization.
+- Summarize modified files, tests executed, and any remaining problems.

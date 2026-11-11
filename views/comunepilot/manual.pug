@@ -1,0 +1,24 @@
+extends layout
+
+block content
+  a.cp-back(href='/assistente')
+    i.fa-solid.fa-arrow-left(aria-hidden='true')
+    | Torna all’assistente
+  header.cp-page-intro
+    span.cp-eyebrow Fonte · Servizi Demografici
+    h1= source.title
+  article.cp-card.cp-document.cp-source-document
+    .cp-study-heading
+      .cp-feature-icon
+        i.fa-solid.fa-book-open(aria-hidden='true')
+      div
+        h2= source.section || 'Estratto del manuale'
+        p.cp-manual-file= source.file
+    .cp-manual-copy
+      if source.excerpt
+        each paragraph in source.text.split(/\n\s*\n/)
+          if paragraph.trim()
+            p= paragraph.trim()
+      else
+        p= source.text
+    p.cp-source-note= source.excerpt ? 'Estratto indicizzato del manuale Palitalsoft.' : 'Sintesi del passaggio del manuale Palitalsoft usato nella demo.'
