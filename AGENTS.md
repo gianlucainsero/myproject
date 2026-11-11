@@ -1,5 +1,10 @@
 # AGENTS.md
 
+> **Progetto del team (Hackathon Responsible, Palitalsoft × Unicam): leggere prima [docs/PROGETTO.md](docs/PROGETTO.md).**
+> Lì ci sono la soluzione, il contratto tra interfaccia e modulo IA (`ai/`), le pagine da costruire e le priorità fino alla consegna (12/11, ore 15:00).
+> Le cartelle `ai/` e `data/` sono gestite da Claude: non modificarle, segnalare le necessità al team. La documentazione del modulo è in [ai/README.md](ai/README.md).
+> Il resto di questo file è la mappa delle dipendenze di Hackathon Starter: serve quando si eliminano gli esempi che non usiamo.
+
 This file is for coding agents (and anyone doing a quick pass with one). It is a
 **dependency map**, not a tutorial — for narrative setup instructions, API key
 registration links, and "how it works" walkthroughs, see [README.md](README.md)
