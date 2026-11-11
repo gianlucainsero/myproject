@@ -21,7 +21,8 @@
 
 ```
 GEMINI_API_KEY=la-vostra-chiave
-GEMINI_MODEL=gemini-2.5-flash     # opzionale: verificare su AI Studio i nomi dei modelli disponibili
+GEMINI_MODEL=gemini-3.5-flash     # opzionale: verificare su AI Studio i nomi dei modelli disponibili
+# GEMINI_THINKING_LEVEL=low       # opzionale: "minimal" se il modello lo supporta, per risposte ancora più rapide
 # AI_MOCK=1                       # opzionale: forza la modalità di riserva (senza IA)
 ```
 
@@ -59,5 +60,6 @@ Nota: le route `/api/*` che ricevono JSON potrebbero essere bloccate dalla prote
 
 È il contratto descritto in `AGENTS.md`, con in più:
 - `sources[].section`: la sezione del manuale;
+- `choices`: risposte cliccabili alla domanda di chiarimento (livello 2). Mostrarle come bottoni e, al click, inviarle come messaggio;
 - `knowledgeGap`: `true` se i manuali non bastano a rispondere. Serve al cruscotto per la sezione "Lacune nei manuali";
 - `mock` / `fallback`: presenti solo in modalità di riserva.
