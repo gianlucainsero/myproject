@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stile grafico – Hackathon Responsible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Titillium+Web:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pg-bg:#F4F7FA; --pg-text:#1B2733; --pg-muted:#4A5968; --pg-line:#D5DCE4;
+  --primary:#1457A6; --primary-d:#0E3F78; --secondary:#0B7A75; --surface:#fff; --text:#1B2733; --muted:#4A5968; --border:#8A97A5; --soft:#D5DCE4;
+  --l1:#1E7B4F; --l1t:#E3F4EB; --l1x:#14573A;
+  --l2:#9A5B00; --l2t:#FFEFC7; --l2x:#6B4300;
+  --l3:#6A3FA0; --l3t:#EEE7F8; --l3x:#4F2A85;
+  --hf:"Titillium Web","Inter",system-ui,sans-serif; --bf:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pg-bg:#121A22;--pg-text:#EEF2F6;--pg-muted:#B5C0CB;--pg-line:#2C3947}}
+:root[data-theme="dark"]{--pg-bg:#121A22;--pg-text:#EEF2F6;--pg-muted:#B5C0CB;--pg-line:#2C3947}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pg-bg);color:var(--pg-text);font-family:var(--bf);font-size:16px;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding:28px 20px 56px}
+h1,h2,h3{font-family:var(--hf);margin:0 0 .4em;line-height:1.2}
+h1{font-size:2.2rem} h2{font-size:1.5rem;margin-top:2.4rem;padding-top:1.2rem;border-top:1px solid var(--pg-line)} h3{font-size:1.1rem}
+p.lead{color:var(--pg-muted);max-width:62ch;margin:.3rem 0 0}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.sw{border-radius:14px;overflow:hidden;border:1px solid var(--pg-line);background:var(--surface);color:var(--text)}
+.sw .c{height:84px;display:flex;align-items:flex-end;padding:10px 12px;font-weight:600;font-size:.9rem}
+.sw .i{padding:10px 12px;font-size:.85rem;color:var(--muted)} .sw b{color:var(--text);display:block;font-size:.95rem}
+.stage{background:var(--surface);color:var(--text);border:1px solid var(--soft);border-radius:16px;padding:22px;box-shadow:0 1px 3px rgba(27,39,51,.08),0 2px 8px rgba(27,39,51,.06)}
+.stage.bg{background:#F4F7FA}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{font:600 1rem var(--bf);min-height:48px;padding:.6rem 1.4rem;border-radius:10px;border:2px solid var(--primary);cursor:pointer;background:var(--primary);color:#fff}
+.btn.out{background:transparent;color:var(--primary)} .btn.sec{background:var(--secondary);border-color:var(--secondary)} .btn.lg{min-height:56px;font-size:1.1rem}
+.btn:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+.card{background:#fff;border:1px solid var(--soft);border-radius:16px;padding:18px 20px;box-shadow:0 1px 3px rgba(27,39,51,.08),0 2px 8px rgba(27,39,51,.06)}
+.card h3{margin-bottom:.2rem}
+.pb{height:14px;background:var(--soft);border-radius:999px;overflow:hidden;margin:.4rem 0 .9rem}.pb i{display:block;height:100%;background:var(--secondary)}
+.area{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.bd{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .85rem;font-size:.95rem;font-weight:600;border-radius:999px;border:1.5px solid}
+.bd svg{width:18px;height:18px;flex:none}
+.b1{background:var(--l1t);color:var(--l1x);border-color:var(--l1)} .b2{background:var(--l2t);color:var(--l2x);border-color:var(--l2)} .b3{background:var(--l3t);color:var(--l3x);border-color:var(--l3)}
+.msg{background:#fff;border-radius:10px;padding:14px 18px;border-left:6px solid;margin:10px 0}
+.msg p{margin:.5rem 0 0}.m1{border-color:var(--l1)}.m2{border-color:var(--l2)}.m3{border-color:var(--l3)}
+.user{margin-left:auto;max-width:78%;background:var(--primary);color:#fff;border-radius:14px 14px 4px 14px;padding:10px 16px;margin-top:6px}
+.tag{font-size:.875rem;font-weight:600;padding:.3rem .7rem;border-radius:6px;display:inline-flex;align-items:center;gap:.4rem;border:1.5px solid}.tag svg{width:16px;height:16px;flex:none}
+.tb{background:#FBE4E2;color:#8C1D17;border-color:#C93C33}.tc{background:#ECEEF2;color:#2F3B49;border-color:#6B7888}.tf{background:#DDF1EF;color:#085B57;border-color:#0B7A75}
+.pa{color:#8C1D17;font-weight:700}.pm{color:#6B4300;font-weight:700}.pl{color:#14573A;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:.95rem}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--soft)}th{color:var(--muted);font-weight:600}
+.spec{display:flex;flex-wrap:wrap;gap:22px;align-items:baseline}.big{font-family:var(--hf);font-weight:700;font-size:2.6rem;line-height:1}
+.note{color:var(--pg-muted);font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Stile grafico del prodotto</h1>
+<p class="lead">Anteprima di palette, font e componenti che gli sviluppatori useranno in Bootstrap 5. Nome del prodotto: da decidere.</p>
+
+<h2>Palette</h2>
+<div class="grid">
+  <div class="sw"><div class="c" style="background:#1457A6;color:#fff">Aa</div><div class="i"><b>Primario #1457A6</b>Bottoni, link, header</div></div>
+  <div class="sw"><div class="c" style="background:#0E3F78;color:#fff">Aa</div><div class="i"><b>Primario scuro #0E3F78</b>Hover, header scuro</div></div>
+  <div class="sw"><div class="c" style="background:#0B7A75;color:#fff">Aa</div><div class="i"><b>Secondario #0B7A75</b>Progressi, grafici</div></div>
+  <div class="sw"><div class="c" style="background:#F4F7FA;color:#1B2733">Aa</div><div class="i"><b>Sfondo #F4F7FA</b>Sfondo pagina</div></div>
+  <div class="sw"><div class="c" style="background:#1B2733;color:#fff">Aa</div><div class="i"><b>Testo #1B2733</b>Testo principale</div></div>
+  <div class="sw"><div class="c" style="background:#4A5968;color:#fff">Aa</div><div class="i"><b>Testo secondario #4A5968</b>Didascalie</div></div>
+</div>
+<h3 style="margin-top:1.4rem">I 3 livelli dell’assistente</h3>
+<div class="grid">
+  <div class="sw"><div class="c" style="background:#1E7B4F;color:#fff">Livello 1</div><div class="i"><b>Risolto #1E7B4F</b>Chiaro #E3F4EB</div></div>
+  <div class="sw"><div class="c" style="background:#9A5B00;color:#fff">Livello 2</div><div class="i"><b>Guida #9A5B00</b>Chiaro #FFEFC7</div></div>
+  <div class="sw"><div class="c" style="background:#6A3FA0;color:#fff">Livello 3</div><div class="i"><b>Ticket #6A3FA0</b>Chiaro #EEE7F8</div></div>
+</div>
+<p class="note">Contrasti verificati WCAG AA (almeno 4.5:1). Il livello si riconosce sempre da colore, icona ed etichetta.</p>
+
+<h2>Font</h2>
+<div class="stage"><div class="spec">
+  <div><div class="big">Titillium Web</div><span class="note">Titoli · 700</span></div>
+  <div><div style="font-size:1.6rem;font-weight:500">Inter</div><span class="note">Testo · base 16px</span></div>
+</div>
+<h3 style="margin-top:1.2rem">Il mio percorso</h3>
+<p style="margin:0;max-width:60ch">Oggi hai due ripassi da fare. Ti servono meno di cinque minuti e non sono un esame: servono solo a fissare quello che già sai.</p></div>
+
+<h2>Bottoni</h2>
+<div class="stage"><div class="row">
+  <button class="btn lg">Continua il percorso</button><button class="btn out">Vedi il manuale</button><button class="btn sec">Fai il ripasso</button>
+</div></div>
+
+<h2>Card e progressi</h2>
+<div class="stage bg"><div class="grid">
+ <div class="card"><h3>Il mio percorso</h3><p class="note" style="margin:0 0 .8rem">Competenza per area</p>
+  <div class="area"><span>Anagrafe</span><span>72%</span></div><div class="pb"><i style="width:72%"></i></div>
+  <div class="area"><span>Elettorale</span><span>45%</span></div><div class="pb"><i style="width:45%"></i></div>
+  <div class="area"><span>Stato civile</span><span>30%</span></div><div class="pb"><i style="width:30%"></i></div></div>
+ <div class="card"><h3>Ripassi di oggi</h3><p class="note" style="margin:0 0 1rem">2 mini-quiz da 3 domande</p><button class="btn lg" style="width:100%">Inizia il ripasso</button></div>
+</div></div>
+
+<h2>Assistente: i 3 livelli</h2>
+<div class="stage bg">
+ <div class="user">Come rilascio una carta d’identità?</div>
+ <div class="msg m1"><span class="bd b1"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05"/></svg>Risposta diretta</span><p>Apri la scheda del cittadino, scegli «Carta d’identità» e segui i 4 passi. Fonte: Manuale Anagrafe, cap. 3.</p></div>
+ <div class="user">Domenica ci sono le elezioni e non so da dove partire</div>
+ <div class="msg m2"><span class="bd b2"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12v2H2zm0 5h12v2H2zm0 5h12v2H2z"/></svg>Ti guido passo passo</span><p>Ti faccio due domande per capire e poi ti preparo la checklist.</p></div>
+ <div class="user">Errore nella stampa delle liste sezionali</div>
+ <div class="msg m3"><span class="bd b3"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 4.5A1.5 1.5 0 0 1 1.5 3h13A1.5 1.5 0 0 1 16 4.5V6a.5.5 0 0 1-.5.5 1.5 1.5 0 0 0 0 3 .5.5 0 0 1 .5.5v1.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 11.5V10a.5.5 0 0 1 .5-.5 1.5 1.5 0 1 0 0-3A.5.5 0 0 1 0 6z"/></svg>Preparo un ticket</span><p>Ho scritto la richiesta per l’assistenza. Controlla e conferma prima dell’invio.</p><div class="row" style="margin-top:.8rem"><button class="btn">Invia il ticket</button><button class="btn out">Modifica</button></div></div>
+</div>
+
+<h2>Cruscotto: coda dei ticket</h2>
+<div class="stage"><table>
+<thead><tr><th>Ticket</th><th>Tipo</th><th>Priorità</th></tr></thead>
+<tbody>
+<tr><td>Errore stampa liste sezionali</td><td><span class="tag tb"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/></svg>Bug</span></td><td class="pa">Alta</td></tr>
+<tr><td>Impostare il nuovo modulo</td><td><span class="tag tc"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 4h12v1.4H2zm0 6.6h12V12H2z"/><circle cx="5" cy="4.7" r="2"/><circle cx="11" cy="11.3" r="2"/></svg>Configurazione</span></td><td class="pm">Media</td></tr>
+<tr><td>Dubbio sul cambio di residenza</td><td><span class="tag tf"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h5a1 1 0 0 1 1 1v9a1 1 0 0 0-1-1H2zM14 3H9a1 1 0 0 0-1 1v9a1 1 0 0 1 1-1h5z"/></svg>Formazione</span></td><td class="pl">Bassa</td></tr>
+</tbody></table></div>
+</div>
+</body>
+</html>
