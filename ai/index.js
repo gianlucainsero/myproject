@@ -14,7 +14,7 @@ function toSources(chunks, ids) {
     const c = byId.get(id);
     if (!c || seen.has(c.file)) continue;
     seen.add(c.file);
-    out.push({ title: c.title, file: c.file, section: c.heading || null });
+    out.push({ title: c.title, file: c.file, section: c.heading || null, module: c.module });
   }
   return out;
 }
@@ -30,19 +30,20 @@ function retrievalQuery(message, history) {
 }
 
 function normalizeResult(r, chunks, area) {
-  let level = [1, 2, 3].includes(r.level) ? r.level : 1;
+  const level = [1, 2, 3].includes(r.level) ? r.level : 1;
+  const sources = toSources(chunks, r.sourceIds);
   let ticket = level === 3 ? r.ticket : null;
   if (level === 3 && !ticket) {
     ticket = { type: 'altro', priority: 'media', summary: r.answer.slice(0, 120), description: r.answer, stepsTried: [] };
   }
-  if (ticket) ticket = { ...ticket, module: P.MODULE_NAMES[area] || area, stepsTried: ticket.stepsTried || [] };
+  if (ticket) ticket = { ...ticket, module: sources[0]?.module || chunks[0]?.module || P.MODULE_NAMES[area], stepsTried: ticket.stepsTried || [] };
   return {
     level,
     answer: r.answer || '',
     steps: (Array.isArray(r.steps) ? r.steps : []).map((x) => String(x).replace(/^\s*\d+[.)]\s*/, '').trim()).filter(Boolean),
     question: r.question || null,
     choices: r.question && Array.isArray(r.choices) ? r.choices.slice(0, 4) : [],
-    sources: toSources(chunks, r.sourceIds),
+    sources,
     quizTopic: level === 3 ? null : (r.quizTopic || null),
     knowledgeGap: Boolean(r.knowledgeGap) && !(ticket && ticket.type === 'bug'),
     ticket,
@@ -52,7 +53,7 @@ function normalizeResult(r, chunks, area) {
 /**
  * @param {{message: string, history?: {role:'user'|'assistant', content:string}[], area?: string}} input
  */
-async function askAssistant({ message, history = [], area = DEFAULT_AREA }) {
+async function askAssistant({ message, history = [], area = 'tutti' }) {
   if (!message || !message.trim()) throw new Error('Messaggio vuoto');
   const chunks = search(retrievalQuery(message, history), { area, k: 8 });
 
@@ -229,7 +230,7 @@ function mockAssistant(message, chunks, area) {
       ticket: {
         type: 'bug',
         priority: urgent ? 'alta' : 'media',
-        module: P.MODULE_NAMES[area] || area,
+        module: top?.module || P.MODULE_NAMES[area],
         summary: message.length > 110 ? `${message.slice(0, 107)}...` : message,
         description: `L'operatore segnala: "${message}". Funzione coinvolta: ${topic || 'da verificare'}. ${urgent ? 'Attività con scadenza vicina.' : ''}`.trim(),
         stepsTried: ['Consultato il manuale della funzione'],
@@ -248,7 +249,7 @@ function mockAssistant(message, chunks, area) {
         : 'Nessun problema, procediamo un passo alla volta. Dimmi meglio cosa devi fare.',
       steps: [...(menu ? [`Si parte dal menu **${menu}**.`] : []), ...headings.slice(0, 6)],
       question: top ? 'Da quale di questi punti vuoi partire?' : 'Su quale attività ti serve aiuto?',
-      choices: top ? headings.slice(0, 4) : ['Carte d\'identità', 'Cambi di residenza', 'Elezioni', 'Certificati'],
+        choices: top ? headings.slice(0, 4) : ['Anagrafe', 'Elettorale', 'Protocollo', 'TARI'],
       sources,
       quizTopic: topic,
       knowledgeGap: !top,
@@ -278,7 +279,7 @@ function mockQuiz(topic, chunks, n, area) {
     const question = menu
       ? {
         question: `Dove trovi la funzione "${c.title}"?`,
-        options: [menu, ...wrong.map((t) => `Servizi demografici → ${t}`)],
+        options: [menu, ...wrong.map((t) => `${c.module || P.MODULE_NAMES[area]} → ${t}`)],
         correctIndex: 0,
         explanation: `Il percorso corretto è ${menu}.`,
         sourceId: c.id,

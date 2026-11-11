@@ -5,6 +5,7 @@ const { Assignment, Case, Quiz } = require('../models/ComunePilot');
 const demo = require('./comunepilot-demo');
 
 const area = 'demografici';
+const assistantArea = 'tutti';
 const assignmentTarget = 'Servizi Demografici – tutti i Comuni';
 const useTeamAI = () => process.env.COMUNEPILOT_LIVE_AI !== 'false';
 const aiModule = () => (useTeamAI() ? ai : demo);
@@ -27,40 +28,38 @@ const latestQuiz = (req, topic) =>
   Quiz.findOne({ owner: owner(req), completedAt: { $exists: true }, ...(topic ? { topic } : {}) })
     .sort({ completedAt: -1 })
     .lean();
-let indexedSources;
+const indexedSources = new Map();
 
-function getIndexedSources() {
-  if (indexedSources) return indexedSources;
-  const { raw: index } = loadIndex(area);
+function getIndexedSources(indexArea) {
+  if (indexedSources.has(indexArea)) return indexedSources.get(indexArea);
+  const { raw: index } = loadIndex(indexArea);
   const byId = new Map();
   const byFile = new Map();
   for (const chunk of index.chunks) {
-    const { title, file } = index.docs[chunk.doc];
-    const content = chunk.text
-      .split('\n')
-      .filter((line) => !/^\s*\[(schermata|immagine|screenshot)\b/i.test(line))
-      .join('\n');
-    const source = { title, file, section: chunk.heading, text: content, excerpt: true, id: `indice-${chunk.id}` };
+    const { title, file, module } = index.docs[chunk.doc];
+    const prefix = indexArea === area ? 'indice-' : 'indice-tutti-';
+    const source = { title, file, module, section: chunk.heading, text: chunk.text, excerpt: true, id: prefix + chunk.id };
     byId.set(source.id, source);
     const key = file.normalize('NFC');
     if (!byFile.has(key)) byFile.set(key, []);
     byFile.get(key).push(source);
   }
-  indexedSources = { byId, byFile };
-  return indexedSources;
+  const sources = { byId, byFile };
+  indexedSources.set(indexArea, sources);
+  return sources;
 }
 
-const sourceLink = (source, req) => {
+const sourceLink = (source, req, indexArea = area) => {
   if (useTeamAI() && source.file) {
-    const entries = getIndexedSources().byFile.get(source.file.normalize('NFC')) || [];
+    const entries = getIndexedSources(indexArea).byFile.get(source.file.normalize('NFC')) || [];
     const indexed = entries.find((entry) => entry.section === source.section) || (source.section == null ? entries[0] : undefined);
     if (indexed) {
       req.session.comunePilotCitations = [...new Set([...(req.session.comunePilotCitations || []), indexed.id])].slice(-100);
-      return { title: indexed.title, file: indexed.file, section: indexed.section, url: `/manuali/${indexed.id}` };
+      return { title: indexed.title, file: indexed.file, module: indexed.module || source.module, section: indexed.section, url: `/manuali/${indexed.id}` };
     }
   }
   const match = Object.entries(demo.sources).find(([, local]) => local.file === source.file);
-  return { title: source.title, file: source.file, section: source.section || match?.[1].section, url: match ? `/manuali/${match[0]}` : null };
+  return { title: source.title, file: source.file, module: source.module, section: source.section || match?.[1].section, url: OLDURL };
 };
 
 exports.home = async (req, res) => {
@@ -104,9 +103,15 @@ exports.review = async (req, res) => {
 exports.manual = (req, res) => {
   const { id } = req.params;
   const cited = useTeamAI() && req.session.comunePilotCitations?.includes(id);
-  const source = Object.hasOwn(demo.sources, id) ? demo.sources[id] : cited ? getIndexedSources().byId.get(id) : null;
+  const indexArea = id.startsWith('indice-tutti-') ? assistantArea : area;
+  const indexed = cited ? getIndexedSources(indexArea).byId.get(id) : null;
+  const source = Object.hasOwn(demo.sources, id) ? demo.sources[id] : indexed;
   if (!source) return res.status(404).send('Fonte non disponibile');
-  return res.render('comunepilot/manual', { ...locals('manual', source.title), source });
+  const content = source.text
+    .split('\n')
+    .filter((line) => !/^\s*\[(schermata|immagine|screenshot)\b/i.test(line))
+    .join('\n');
+  return res.render('comunepilot/manual', { ...locals('manual', source.title), source: { ...source, text: content } });
 };
 
 function rankDashboardRows(values, examples) {
@@ -227,7 +232,7 @@ exports.ask = async (req, res) => {
   const message = text(req.body?.message, 1500);
   const { caseId } = req.body || {};
   if (!message) return res.status(400).json({ error: 'Scrivi una domanda.' });
-  if (req.body.area && req.body.area !== area) return res.status(400).json({ error: 'Nella demo è disponibile Servizi Demografici.' });
+  if (req.body.area && ![area, assistantArea].includes(req.body.area)) return res.status(400).json({ error: 'Area non disponibile.' });
 
   const identity = owner(req);
   const existing = validId(caseId) ? await Case.findOne({ _id: caseId, owner: identity }).lean() : null;
@@ -248,7 +253,7 @@ exports.ask = async (req, res) => {
         ticket: {
           type: 'altro',
           priority: 'bassa',
-          module: 'Servizi Demografici',
+          module: existing.module || 'Servizi Demografici',
           summary: `Supporto per ${existing.topic}`,
           description: history
             .filter((entry) => entry.role === 'user')
@@ -259,17 +264,22 @@ exports.ask = async (req, res) => {
       };
     } else {
       const { askAssistant } = aiModule();
-      result = await askAssistant({ message, history, area });
+      result = await askAssistant({ message, history, area: assistantArea });
     }
     if (![1, 2, 3].includes(result?.level) || typeof result.answer !== 'string') throw new Error('Risposta non valida');
   } catch {
     return res.status(503).json({ error: 'L’assistente è momentaneamente indisponibile. Puoi riprovare tra poco.' });
   }
-  const sources = (result.sources || []).map((source) => sourceLink(source, req));
+  const sources = (result.sources || []).map((source) => sourceLink(source, req, assistantArea));
   const quizTopic = trainingTopic(result.quizTopic);
   const nextHistory = [...history, { role: 'user', content: message }, { role: 'assistant', content: result.question ? `${result.answer}\n${result.question}` : result.answer }];
   const draft = result.level === 3 && result.ticket ? result.ticket : undefined;
-  const values = { level: result.level, history: nextHistory, topic: quizTopic || existing?.topic || sources[0]?.title || 'Supporto operativo' };
+  const values = {
+    level: result.level,
+    history: nextHistory,
+    topic: quizTopic || existing?.topic || sources[0]?.title || 'Supporto operativo',
+    module: sources[0]?.module || result.ticket?.module || existing?.module,
+  };
   const manualGap = result.knowledgeGap === true;
   let saved;
   if (existing) {
@@ -309,7 +319,7 @@ exports.ticket = async (req, res) => {
   let priority = 'bassa';
   if (impact === 'ufficio' || urgency === 'oggi') priority = 'alta';
   else if (impact === 'operatore' || urgency === 'presto') priority = 'media';
-  const ticket = { type, priority, summary, description, stepsTried, impact, urgency, createdAt: new Date() };
+  const ticket = { type, priority, module: entry.draft.module, summary, description, stepsTried, impact, urgency, createdAt: new Date() };
   const saved = await Case.findOneAndUpdate({ _id: caseId, owner: identity, ticket: { $exists: false }, resolvedAt: { $exists: false }, updatedAt: entry.updatedAt }, { $set: { ticket } }, { returnDocument: 'after' });
   if (saved) return res.status(201).json({ id: saved.id, priority });
   const confirmed = await Case.findOne({ _id: caseId, owner: identity, ticket: { $exists: true } }).lean();

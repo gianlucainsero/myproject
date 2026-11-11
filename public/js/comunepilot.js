@@ -54,7 +54,7 @@
   function sourceList(sources) {
     const wrapper = element('div', 'cp-sources');
     for (const source of sources) {
-      const title = source.section ? `${source.title} · ${source.section}` : source.title;
+      const title = [source.module, source.title, source.section].filter(Boolean).join(' · ');
       const label = `Fonte: ${title}`;
       const item = source.url ? link('', source.url, 'cp-source') : element('span', 'cp-source');
       item.append(icon('fa-book-open'), label);
@@ -143,6 +143,7 @@
 
     function renderTicket(draft, message) {
       const panel = document.querySelector('#ticket-template').content.firstElementChild.cloneNode(true);
+      panel.querySelector('[data-ticket-module]').textContent = draft.module || 'Cityware Online';
       const fields = panel.elements;
       const preview = panel.querySelector('.cp-ticket-preview');
       const editor = panel.querySelector('.cp-ticket-editor');
@@ -274,7 +275,7 @@
       messages.append(prompt, pending);
       scroll();
       try {
-        const result = await request('/api/assistant', { message, area: 'demografici', caseId, escalate });
+        const result = await request('/api/assistant', { message, area: 'tutti', caseId, escalate });
         ({ caseId } = result);
         newCase.hidden = false;
         actions?.remove();

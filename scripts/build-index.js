@@ -51,7 +51,7 @@ function selectVersions(files) {
 
 // Divide il documento per sezioni (##, ###) e spezza le sezioni troppo lunghe per paragrafi.
 function chunkDoc(text) {
-  const lines = text.split('\n');
+  const lines = text.split(/\r?\n/);
   const sections = [];
   let heading = '';
   let buf = [];
@@ -61,7 +61,7 @@ function chunkDoc(text) {
     buf = [];
   };
   for (const line of lines) {
-    const m = line.match(/^(#{2,3})\s+(.+)$/);
+    const m = line.match(/^(#{2,6})\s+(.+)$/);
     if (m) { flush(); heading = m[2].trim(); } else if (!/^#\s/.test(line)) buf.push(line);
   }
   flush();

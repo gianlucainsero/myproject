@@ -3,7 +3,7 @@ extends layout
 block content
   - const levels = [{ label: 'Risposta diretta', icon: 'fa-circle-check', description: 'I passi da fare e il manuale da cui li ho presi.' }, { label: 'Ti guido io', icon: 'fa-list-check', description: 'Ti faccio qualche domanda e ti preparo una checklist.' }, { label: 'Ticket assistenza', icon: 'fa-ticket', description: 'Preparo la richiesta. La confermi tu nella coda simulata.' }];
   header.cp-page-intro
-    span.cp-eyebrow Servizi Demografici
+    span.cp-eyebrow Cityware Online
     h1 Assistente
     p Chiedi una procedura di Cityware Online o descrivi un problema operativo.
   .cp-detail-grid.cp-assistant-grid
@@ -53,7 +53,7 @@ block content
       .cp-ticket
         header.cp-ticket-heading
           h3 Bozza ticket
-          span Servizi Demografici
+          span(data-ticket-module)
         dl.cp-ticket-preview
           dt Oggetto
           dd(data-ticket-summary)

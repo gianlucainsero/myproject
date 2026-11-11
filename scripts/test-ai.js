@@ -15,6 +15,8 @@ const scenarios = [
   "Come rilascio una carta d'identità?",
   'Domenica ci sono le elezioni e non so da dove partire',
   'Quando lancio la stampa delle liste sezionali mi dà errore e non stampa niente',
+  'Come faccio il calcolo degli avvisi bonari TARI?',
+  'Come protocollo un documento in arrivo?',
 ];
 
 (async () => {

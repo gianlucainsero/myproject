@@ -7,6 +7,7 @@ const ticketSchema = new mongoose.Schema(
   {
     type: String,
     priority: String,
+    module: String,
     summary: String,
     description: String,
     stepsTried: [String],
@@ -22,6 +23,7 @@ const caseSchema = new mongoose.Schema(
     owner: { type: String, required: true, index: true },
     sessionId: String,
     topic: String,
+    module: String,
     level: Number,
     history: [{ role: String, content: String, _id: false }],
     manualGaps: [String],

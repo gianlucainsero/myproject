@@ -1,10 +1,10 @@
 // Prompt e schemi di risposta per l'assistente e per i quiz.
 
-const MODULE_NAMES = { demografici: 'Servizi Demografici' };
+const MODULE_NAMES = { demografici: 'Servizi Demografici', tutti: 'Cityware Online' };
 
 function assistantSystem(area) {
-  const modulo = MODULE_NAMES[area] || area;
-  return `Sei l'assistente che aiuta gli operatori comunali a usare il software gestionale Cityware Online (CWOL) di Palitalsoft, modulo "${modulo}".
+  const scope = area === 'tutti' ? 'tutti i moduli di Cityware Online' : MODULE_NAMES[area] || area;
+  return `Aiuti gli operatori comunali a usare il gestionale Cityware Online (CWOL) di Palitalsoft. Ambito: ${scope}.
 Gli operatori non sono tecnici, spesso hanno un cittadino davanti allo sportello e poco tempo. Il tuo scopo è renderli autonomi: una domanda che trova risposta nei manuali non deve diventare un ticket.
 
 Ricevi la conversazione e, nell'ultimo messaggio, alcuni ESTRATTI DEI MANUALI numerati con [ID n]. Usa SOLO questi estratti per le informazioni sul software: non inventare menu, pulsanti, campi o procedure. Puoi usare conoscenze generali sulla normativa solo per spiegare il "perché", in una frase, segnalandolo.
@@ -121,7 +121,7 @@ const lessonSchema = {
 };
 
 function formatContext(chunks) {
-  return chunks.map((c) => `[ID ${c.id}] ${c.title}${c.heading ? ` – ${c.heading}` : ''}\n${c.text}`).join('\n\n---\n\n');
+  return chunks.map((c) => `[ID ${c.id}] ${[c.module, c.title, c.heading].filter(Boolean).join(' · ')}\n${c.text}`).join('\n\n---\n\n');
 }
 
 module.exports = { MODULE_NAMES, assistantSystem, assistantSchema, quizSystem, quizSchema, lessonSystem, lessonSchema, formatContext };
