@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 // Prova rapida del modulo IA. Uso: node scripts/test-ai.js  (con GEMINI_API_KEY in .env.example)
-// Carica le variabili come fa app.js (file .env.example, non committato)
-try { process.loadEnvFile('.env.example'); } catch (_) {}
+// Carica le variabili come fa app.js (file .env.example nella cartella principale, non committato)
+const path = require('path');
+const fs = require('fs');
+const envFile = path.join(__dirname, '..', '.env.example');
+if (fs.existsSync(envFile)) process.loadEnvFile(envFile);
+else console.log(`ATTENZIONE: non trovo ${envFile}`);
+const key = process.env.GEMINI_API_KEY || '';
+console.log(`GEMINI_API_KEY: ${key ? `trovata (${key.slice(0, 4)}…, ${key.length} caratteri)` : 'NON trovata: aggiungi GEMINI_API_KEY=... in .env.example'}`);
+if (process.env.AI_MOCK === '1') console.log('AI_MOCK=1: modalità di riserva forzata');
 const { askAssistant, generateQuiz, isAiConfigured } = require('../ai');
 
 const scenarios = [
