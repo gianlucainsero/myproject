@@ -135,6 +135,8 @@ function rankDashboardRows(values, examples) {
 
 exports.dashboard = async (req, res) => {
   const identity = owner(req);
+  const { demoReset } = req.session;
+  delete req.session.demoReset;
   const { dashboardExample: example } = demo;
   const [cases, quizzes, assignments] = await Promise.all([
     Case.find({ owner: identity }).select('topic level resolvedAt ticket draft.description manualGaps').lean(),
@@ -196,12 +198,28 @@ exports.dashboard = async (req, res) => {
     requestedTopics,
     manualGaps,
     difficulty,
+    demoReset,
     assignments: assignments.map(({ topic, lesson, target, completions }) => {
       const score = completions.reduce((sum, entry) => sum + entry.score, 0);
       const total = completions.reduce((sum, entry) => sum + entry.total, 0);
       return { topic, title: lesson.title, target, count: completions.length, percent: total ? Math.round((100 * score) / total) : null };
     }),
   });
+};
+
+exports.resetDemo = async (req, res) => {
+  const identity = owner(req);
+  const { sessionID } = req;
+  const scope = { owner: identity, ...(req.user ? { sessionId: sessionID } : {}) };
+  const completedHere = { owner: identity, sessionId: sessionID };
+
+  await Promise.all([Case.deleteMany(scope), Quiz.deleteMany(scope), Assignment.deleteMany({ createdBy: identity, createdInSession: sessionID }), Assignment.updateMany({ completions: { $elemMatch: completedHere } }, { $pull: { completions: completedHere } })]);
+
+  delete req.session.assignmentDraft;
+  delete req.session.completedReview;
+  delete req.session.comunePilotCitations;
+  req.session.demoReset = true;
+  return res.redirect(303, '/palitalsoft?ripristinata=1');
 };
 
 const validQuestion = (question) => question?.question && Array.isArray(question.options) && question.options.length >= 2 && Number.isInteger(question.correctIndex) && question.options[question.correctIndex] && question.source?.file;

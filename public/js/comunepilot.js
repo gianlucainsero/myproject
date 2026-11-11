@@ -519,4 +519,9 @@
   if (document.querySelector('#chat-form')) startChat();
   if (document.querySelector('#quiz')) startQuiz();
   if (document.querySelector('#assignment-preview')) setupAssignments();
+  const reset = document.querySelector('#reset-demo');
+  reset?.addEventListener('submit', () => {
+    reset.querySelector('button').disabled = true;
+    document.querySelector('#reset-status').textContent = 'Sto ripristinando la demo…';
+  });
 })();

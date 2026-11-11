@@ -264,6 +264,7 @@ app.post('/api/quiz', comunePilotController.startQuiz);
 app.post('/api/quiz/attempt', comunePilotController.answerQuiz);
 app.post('/api/assignments/preview', comunePilotController.previewAssignment);
 app.post('/api/assignments', comunePilotController.publishAssignment);
+app.post('/palitalsoft/ripristina', comunePilotController.resetDemo);
 app.get('/login', userController.getLogin);
 app.post('/login', loginLimiter, userController.postLogin);
 app.get('/login/verify/:token', loginLimiter, userController.getLoginByEmail);

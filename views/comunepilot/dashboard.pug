@@ -5,6 +5,8 @@ block content
     span.cp-eyebrow Spazio formatore
     h1 Cruscotto Palitalsoft
     p Servizi Demografici · Attività della sessione demo
+  if demoReset
+    p.cp-feedback.cp-feedback-success(role='status') Demo ripristinata.
   section.cp-metrics(aria-label='Indicatori della sessione e dati simulati')
     each metric, index in metrics
       article.cp-card.cp-metric
@@ -130,6 +132,11 @@ block content
               if gap.simulated
                 span.cp-sample-mark= gap.session ? `${gap.session} dalla sessione · ${gap.simulated} simulati` : 'Dati simulati'
               button.cp-btn.cp-btn-outline.cp-create-review(type='button', data-topic=gap.label, data-origin='lacuna') Crea ripasso
+
+  form#reset-demo.cp-study-actions.mt-4(action='/palitalsoft/ripristina', method='post')
+    input(type='hidden', name='_csrf', value=_csrf)
+    button.cp-btn.cp-btn-outline(type='submit') Ripristina demo
+    span#reset-status(role='status')
 
 block scripts
   script(src='/js/comunepilot.js?v=' + getFileHash('/js/comunepilot.js'), defer)
