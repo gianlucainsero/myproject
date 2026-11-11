@@ -24,6 +24,16 @@
     return control;
   }
 
+  function responseText(tag, className, value) {
+    const node = element(tag, className);
+    String(value)
+      .split(/\*\*([^*\n]+)\*\*/)
+      .forEach((part, index) => {
+        node.append(index % 2 ? element('strong', '', part) : part);
+      });
+    return node;
+  }
+
   function link(label, href, className = 'cp-text-link') {
     const control = element('a', className, label);
     control.href = href;
@@ -174,10 +184,11 @@
         actions?.remove();
         const reply = element('div', 'cp-message cp-message-assistant');
         reply.append(element('span', `cp-level-tag level-${result.level}`, `Livello ${result.level} · ${labels[result.level - 1]}`));
-        reply.append(element('p', 'cp-answer', result.answer));
+        if (result.mock || result.fallback) reply.append(element('p', 'cp-chat-pending', 'Modalità di riserva'));
+        reply.append(responseText('p', 'cp-answer', result.answer));
         if (result.steps?.length) {
           const list = element('ol', 'cp-steps');
-          result.steps.forEach((step) => list.append(element('li', '', step)));
+          result.steps.forEach((step) => list.append(responseText('li', '', step)));
           reply.append(list);
         }
         if (result.question) reply.append(element('p', 'cp-question', result.question));

@@ -12,16 +12,16 @@ block content
           i.fa-solid.fa-comment-dots(aria-hidden='true')
         div
           h2 Assistente ComunePilot
-          p= liveAI ? 'Risposte dai manuali' : 'Risposte dimostrative dai manuali'
+          p= assistantMode
         button#new-case.cp-btn.cp-btn-outline(type='button', hidden) Nuova domanda
       #messages.cp-messages(role='log', aria-live='polite', aria-relevant='additions text')
         #empty-chat.cp-empty-chat
           h3 Come posso aiutarti?
           p Prova a partire da una di queste domande.
           .cp-prompts
-            button(type='button', data-prompt='Come rilascio una carta d’identità?') Come rilascio una carta d’identità?
-            button(type='button', data-prompt='Domenica ci sono le elezioni e non so da dove partire.') Domenica ci sono le elezioni e non so da dove partire.
-            button(type='button', data-prompt='Stampa Liste Sezionali dà errore con il testo corretto, anche a un collega. L’ufficio è bloccato e la consegna è oggi.') La stampa delle liste sezionali è bloccata.
+            button(type='button', data-prompt='Come preparo il Rilascio CIE in Gestione Carte d’identità in Cityware?') Come rilascio una carta d’identità?
+            button(type='button', data-prompt='Elezioni amministrative: devo aprire una nuova tornata in Cityware, da dove partire?') Da dove parto per aprire la tornata elettorale?
+            button(type='button', data-prompt='Stampa Liste Sezionali: errore nella funzione di stampa 322, anche con un testo cwd corretto. L’ufficio è bloccato e la consegna è oggi.') La stampa delle liste sezionali è bloccata.
       p#chat-error.cp-form-error(role='alert', hidden)
       form#chat-form.cp-composer
         label.visually-hidden(for='chat-input') Scrivi una domanda

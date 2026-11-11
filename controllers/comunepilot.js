@@ -1,16 +1,12 @@
-const { pathToFileURL } = require('node:url');
-const path = require('node:path');
 const mongoose = require('mongoose');
+const ai = require('../ai');
+const { loadIndex } = require('../ai/search');
 const { Case, Quiz } = require('../models/ComunePilot');
 const demo = require('./comunepilot-demo');
 
 const area = 'demografici';
-const useLiveAI = () => process.env.COMUNEPILOT_LIVE_AI === 'true';
-const aiModule = async () => {
-  if (!useLiveAI()) return demo;
-  const loaded = await import(pathToFileURL(path.join(__dirname, '../ai/index.js')).href);
-  return loaded.default || loaded;
-};
+const useTeamAI = () => process.env.COMUNEPILOT_LIVE_AI !== 'false';
+const aiModule = () => (useTeamAI() ? ai : demo);
 
 const ticketTypes = { bug: 'Possibile anomalia', configurazione: 'Configurazione', formazione: 'Formazione', altro: 'Supporto operativo' };
 const urgencyLabels = { oggi: 'Entro oggi', presto: 'A breve', nessuna: 'Nessuna scadenza' };
@@ -18,20 +14,52 @@ const impactLabels = { ufficio: 'Ufficio bloccato', operatore: 'Singolo operator
 const priorities = { alta: 0, media: 1, bassa: 2 };
 
 const text = (value, limit) => (typeof value === 'string' ? value.trim().slice(0, limit) : '');
+const trainingTopic = (topic) => (/^(?:gestione )?carte d['’]identità$/i.test(topic) ? demo.topic : topic);
 const validId = (id) => typeof id === 'string' && mongoose.isObjectIdOrHexString(id);
 const owner = (req) => {
   req.session.comunePilot = true;
   return req.user ? `user:${req.user.id}` : `demo:${req.sessionID}`;
 };
 
-const locals = (page, title) => ({ page, title, liveAI: useLiveAI() });
+const locals = (page, title) => ({ page, title });
 const latestQuiz = (req) =>
   Quiz.findOne({ owner: owner(req), completedAt: { $exists: true } })
     .sort({ completedAt: -1 })
     .lean();
-const sourceLink = (source) => {
+let indexedSources;
+
+function getIndexedSources() {
+  if (indexedSources) return indexedSources;
+  const { raw: index } = loadIndex(area);
+  const byId = new Map();
+  const byFile = new Map();
+  for (const chunk of index.chunks) {
+    const { title, file } = index.docs[chunk.doc];
+    const content = chunk.text
+      .split('\n')
+      .filter((line) => !/^\s*\[(schermata|immagine|screenshot)\b/i.test(line))
+      .join('\n');
+    const source = { title, file, section: chunk.heading, text: content, excerpt: true, id: `indice-${chunk.id}` };
+    byId.set(source.id, source);
+    const key = file.normalize('NFC');
+    if (!byFile.has(key)) byFile.set(key, []);
+    byFile.get(key).push(source);
+  }
+  indexedSources = { byId, byFile };
+  return indexedSources;
+}
+
+const sourceLink = (source, req) => {
+  if (useTeamAI() && source.file) {
+    const entries = getIndexedSources().byFile.get(source.file.normalize('NFC')) || [];
+    const indexed = entries.find((entry) => entry.section === source.section) || (source.section == null ? entries[0] : undefined);
+    if (indexed) {
+      req.session.comunePilotCitations = [...new Set([...(req.session.comunePilotCitations || []), indexed.id])].slice(-100);
+      return { title: indexed.title, file: indexed.file, section: indexed.section, url: `/manuali/${indexed.id}` };
+    }
+  }
   const match = Object.entries(demo.sources).find(([, local]) => local.file === source.file);
-  return { title: source.title, file: source.file, section: match?.[1].section, url: match ? `/manuali/${match[0]}` : null };
+  return { title: source.title, file: source.file, section: source.section || match?.[1].section, url: match ? `/manuali/${match[0]}` : null };
 };
 
 exports.home = async (req, res) => {
@@ -39,19 +67,23 @@ exports.home = async (req, res) => {
 };
 
 exports.lesson = async (req, res) => {
-  res.render('comunepilot/lesson', { ...locals('lesson', 'Rilascio CIE in Cityware'), source: sourceLink(demo.sources.cie) });
+  res.render('comunepilot/lesson', { ...locals('lesson', 'Rilascio CIE in Cityware'), source: { ...demo.sources.cie, url: '/manuali/cie' } });
 };
 
 exports.assistant = (req, res) => {
-  res.render('comunepilot/assistant', locals('assistant', 'Assistente'));
+  let assistantMode = 'Risposte dimostrative dai manuali';
+  if (useTeamAI()) assistantMode = ai.isAiConfigured() ? 'Gemini con fonti dai manuali' : 'Ricerca nei manuali · modalità di riserva';
+  res.render('comunepilot/assistant', { ...locals('assistant', 'Assistente'), assistantMode });
 };
 
 exports.quiz = async (req, res) => {
-  res.render('comunepilot/quiz', { ...locals('quiz', 'Mini-quiz'), topic: text(req.query.topic, 100) || demo.topic, latest: await latestQuiz(req) });
+  res.render('comunepilot/quiz', { ...locals('quiz', 'Mini-quiz'), topic: trainingTopic(text(req.query.topic, 100)) || demo.topic, latest: await latestQuiz(req) });
 };
 
 exports.manual = (req, res) => {
-  const source = Object.hasOwn(demo.sources, req.params.id) ? demo.sources[req.params.id] : null;
+  const { id } = req.params;
+  const cited = useTeamAI() && req.session.comunePilotCitations?.includes(id);
+  const source = Object.hasOwn(demo.sources, id) ? demo.sources[id] : cited ? getIndexedSources().byId.get(id) : null;
   if (!source) return res.status(404).send('Fonte non disponibile');
   return res.render('comunepilot/manual', { ...locals('manual', source.title), source });
 };
@@ -139,17 +171,18 @@ exports.ask = async (req, res) => {
         },
       };
     } else {
-      const { askAssistant } = await aiModule();
+      const { askAssistant } = aiModule();
       result = await askAssistant({ message, history, area });
     }
     if (![1, 2, 3].includes(result?.level) || typeof result.answer !== 'string') throw new Error('Risposta non valida');
   } catch {
     return res.status(503).json({ error: 'L’assistente è momentaneamente indisponibile. Puoi riprovare tra poco.' });
   }
-  const sources = (result.sources || []).map(sourceLink);
+  const sources = (result.sources || []).map((source) => sourceLink(source, req));
+  const quizTopic = trainingTopic(result.quizTopic);
   const nextHistory = [...history, { role: 'user', content: message }, { role: 'assistant', content: result.question ? `${result.answer}\n${result.question}` : result.answer }];
   const draft = result.level === 3 && result.ticket ? result.ticket : undefined;
-  const values = { level: result.level, history: nextHistory, topic: result.quizTopic || existing?.topic || sources[0]?.title || 'Supporto operativo' };
+  const values = { level: result.level, history: nextHistory, topic: quizTopic || existing?.topic || sources[0]?.title || 'Supporto operativo' };
   let saved;
   if (existing) {
     const update = draft ? { $set: { ...values, draft } } : { $set: values, $unset: { draft: 1 } };
@@ -158,7 +191,7 @@ exports.ask = async (req, res) => {
   } else {
     saved = await Case.create({ owner: identity, ...values, draft });
   }
-  return res.json({ ...result, sources, caseId: saved.id });
+  return res.json({ ...result, sources, quizTopic, caseId: saved.id });
 };
 
 exports.resolve = async (req, res) => {
@@ -198,18 +231,23 @@ exports.ticket = async (req, res) => {
 const publicQuestion = ({ question, options }) => ({ question, options });
 
 exports.startQuiz = async (req, res) => {
-  const topic = text(req.body?.topic, 100) || demo.topic;
+  const topic = trainingTopic(text(req.body?.topic, 100)) || demo.topic;
   let result;
   try {
-    const { generateQuiz } = await aiModule();
-    result = await generateQuiz({ topic, n: 3 });
-    if (result?.questions?.length !== 3 || result.questions.some((item) => !item?.question || item.options?.length < 2 || !Number.isInteger(item.correctIndex) || !item.options?.[item.correctIndex] || !item.source?.file)) {
+    const { generateQuiz } = aiModule();
+    result = await generateQuiz({ topic: topic === demo.topic ? 'Rilascio CIE in Cityware' : topic, n: 3, area });
+    if (
+      !Array.isArray(result?.questions) ||
+      !result.questions.length ||
+      result.questions.length > 3 ||
+      result.questions.some((item) => !item?.question || !Array.isArray(item.options) || item.options.length < 2 || !Number.isInteger(item.correctIndex) || !item.options[item.correctIndex] || !item.source?.file)
+    ) {
       throw new Error('Quiz non valido');
     }
   } catch {
     return res.status(503).json({ error: 'Il quiz è momentaneamente indisponibile. Riprova tra poco.' });
   }
-  const quiz = await Quiz.create({ owner: owner(req), topic: result.topic || topic, questions: result.questions });
+  const quiz = await Quiz.create({ owner: owner(req), topic, questions: result.questions });
   return res.status(201).json({ id: quiz.id, topic: quiz.topic, question: publicQuestion(quiz.questions[0]), total: quiz.questions.length });
 };
 
@@ -234,7 +272,7 @@ exports.answerQuiz = async (req, res) => {
     correct: recorded.answers[index] === question.correctIndex,
     correctIndex: question.correctIndex,
     explanation: question.explanation,
-    source: sourceLink(question.source),
+    source: sourceLink(question.source, req),
     next: next ? publicQuestion(next) : null,
     score: next ? null : recorded.score,
   });

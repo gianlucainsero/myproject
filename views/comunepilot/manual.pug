@@ -9,6 +9,12 @@ block content
     h1= source.title
     p= source.file
   article.cp-card.cp-document.cp-source-document
-    h2= source.section
-    p= source.text
-    p.cp-source-note Sintesi del passaggio del manuale Palitalsoft usato nella demo.
+    h2= source.section || 'Estratto del manuale'
+    if source.excerpt
+      each paragraph in source.text.split(/\n\s*\n/)
+        if paragraph.trim()
+          p= paragraph.trim()
+      p.cp-source-note Estratto indicizzato del manuale Palitalsoft.
+    else
+      p= source.text
+      p.cp-source-note Sintesi del passaggio del manuale Palitalsoft usato nella demo.
