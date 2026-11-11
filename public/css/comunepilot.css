@@ -593,7 +593,51 @@ a.cp-source:hover {
   display: block;
   margin: 12px 0 22px;
   border-radius: 12px;
-  background: #102948;
+  background: var(--cp-blue-deep);
+}
+.cp-study-grid {
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+}
+.cp-study-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.cp-document .cp-study-heading p {
+  margin: 3px 0 0;
+  font-size: 0.9rem;
+}
+.cp-study-section {
+  padding-top: 16px;
+  border-top: 1px solid var(--cp-border);
+}
+.cp-study-sidebar {
+  background: var(--cp-training-tint);
+  border-color: var(--cp-secondary);
+}
+.cp-study-sidebar .cp-feature-icon {
+  background: white;
+  color: var(--cp-secondary);
+}
+.cp-study-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 16px;
+}
+.cp-source-document .cp-manual-file {
+  overflow-wrap: anywhere;
+}
+.cp-manual-copy {
+  margin-top: 17px;
+  border-top: 1px solid var(--cp-border);
+  padding-top: 5px;
+}
+.cp-manual-copy p {
+  color: var(--cp-ink);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .cp-assistant-grid {
@@ -1001,12 +1045,16 @@ a.cp-source:hover {
 .cp-quiz {
   max-width: 790px;
 }
+.cp-quiz-start .cp-btn {
+  margin-top: 15px;
+}
 .cp-question-form {
   margin-top: 15px;
 }
 .cp-question-form legend {
-  font-weight: 720;
-  font-size: 1.15rem;
+  font-family: var(--cp-heading-font);
+  font-weight: 600;
+  font-size: 1.35rem;
 }
 .cp-question-form fieldset {
   min-width: 0;
@@ -1015,17 +1063,21 @@ a.cp-source:hover {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-height: 48px;
   margin: 0 0 7px;
   padding: 10px 11px;
   border: 1px solid var(--cp-border);
-  border-radius: 7px;
+  border-radius: 10px;
   cursor: pointer;
 }
 .cp-option:has(input:checked) {
-  background: #eaf4ff;
-  border-color: #8cb6dc;
+  background: var(--cp-pale);
+  border-color: var(--cp-blue);
 }
 .cp-option input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
   accent-color: var(--cp-blue);
 }
 .cp-question-form .cp-btn {
@@ -1034,16 +1086,24 @@ a.cp-source:hover {
 .cp-feedback {
   margin: 11px 0;
   padding: 10px;
-  border-radius: 8px;
+  border: 1px solid;
+  border-radius: 10px;
   font-size: 0.9rem;
 }
 .cp-feedback-success {
-  color: #175945;
-  background: #e7f7ef;
+  color: var(--cp-level-1-ink);
+  background: var(--cp-level-1-tint);
+  border-color: var(--cp-level-1);
 }
 .cp-feedback-review {
-  color: #713a11;
-  background: #fff4e6;
+  color: var(--cp-level-2-ink);
+  background: var(--cp-level-2-tint);
+  border-color: var(--cp-level-2);
+}
+.cp-feedback-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
 }
 .cp-feedback > p {
   margin: 3px 0;
@@ -1054,9 +1114,6 @@ a.cp-source:hover {
 }
 #quiz-body > h2 {
   margin: 4px 0 13px;
-}
-#quiz-body > a + a {
-  margin-left: 11px;
 }
 
 .cp-metrics {
@@ -1277,6 +1334,9 @@ a.cp-source:hover {
 }
 
 @media (max-width: 850px) {
+  .cp-study-grid {
+    grid-template-columns: 1fr;
+  }
   .cp-frame {
     display: block;
   }

@@ -8,28 +8,37 @@ block content
     span.cp-eyebrow Anagrafe · Microlezione
     h1 Rilascio CIE in Cityware
     p Trova la funzione e prepara la contabilizzazione dei diritti in Cityware Online.
-  .cp-detail-grid
+  .cp-detail-grid.cp-study-grid
     article.cp-card.cp-document
-      h2 Video dimostrativo
+      .cp-study-heading
+        .cp-feature-icon
+          i.fa-solid.fa-play(aria-hidden='true')
+        div
+          h2 Video dimostrativo
+          p 21 secondi
       video.cp-video(controls, playsinline, preload='metadata', poster='/cie-poster.webp', aria-label='Rilascio CIE in Cityware, video di 21 secondi con testo a schermo')
         source(src='/cie-microlezione.mp4', type='video/mp4')
         a(href='/cie-microlezione.mp4') Apri il video dimostrativo
-      h2 Dove trovare la funzione
-      p.cp-breadcrumb-path Servizi Demografici → Anagrafe → Variazioni → Gestione Carte d’identità
-      h2 Cosa controllare
-      ol.cp-steps
-        li Seleziona il documento nell’elenco e apri #[strong Rilascio CIE].
-        li Controlla il #[strong tipo di CIE] e la #[strong modalità di pagamento].
-        li Verifica i dati prima di confermare la prenotazione dell’emissione in Cityware.
-      a.cp-source(href=source.url)
-        i.fa-regular.fa-file-lines(aria-hidden='true')
-        span= `${source.title} · ${source.section}`
-    aside.cp-card.cp-document
-      .cp-feature-icon
-        i.fa-solid.fa-list-check(aria-hidden='true')
-      h2 Metti alla prova quello che hai imparato
-      p Tre domande con spiegazioni e riferimenti al manuale.
-      a.cp-btn.cp-btn-primary(href='/quiz')
-        | Inizia il mini-quiz
-        i.fa-solid.fa-arrow-right(aria-hidden='true')
-      a.cp-text-link(href='/assistente') Chiedi all’assistente
+      section.cp-study-section(aria-labelledby='lesson-steps-title')
+        h2#lesson-steps-title Dove trovare la funzione
+        p.cp-breadcrumb-path Servizi Demografici → Anagrafe → Variazioni → Gestione Carte d’identità
+        h2 Cosa controllare
+        ol.cp-steps
+          li Seleziona il documento nell’elenco e apri #[strong Rilascio CIE].
+          li Controlla il #[strong tipo di CIE] e la #[strong modalità di pagamento].
+          li Verifica i dati prima di confermare la prenotazione dell’emissione in Cityware.
+        a.cp-source(href=source.url)
+          i.fa-solid.fa-book-open(aria-hidden='true')
+          span= `Fonte: ${source.title} · ${source.section}`
+    aside.cp-card.cp-document.cp-study-sidebar
+      .cp-study-heading
+        .cp-feature-icon
+          i.fa-solid.fa-list-check(aria-hidden='true')
+        div
+          h2 Metti alla prova quello che hai imparato
+          p Tre domande con spiegazioni e riferimenti al manuale.
+      .cp-study-actions
+        a.cp-btn.cp-btn-secondary(href='/quiz')
+          | Inizia il mini-quiz
+          i.fa-solid.fa-arrow-right(aria-hidden='true')
+        a.cp-text-link(href='/assistente') Chiedi all’assistente

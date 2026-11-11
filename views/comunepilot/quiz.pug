@@ -10,11 +10,15 @@ block content
     p= topic
   section#quiz.cp-card.cp-document.cp-quiz(data-topic=topic, aria-label='Mini-quiz')
     .cp-quiz-start
-      h2 Pronto per la verifica?
-      p Dopo ogni risposta vedrai una spiegazione e il riferimento al manuale.
+      .cp-study-heading
+        .cp-feature-icon
+          i.fa-solid.fa-list-check(aria-hidden='true')
+        div
+          h2 Pronto per la verifica?
+          p Dopo ogni risposta vedrai una spiegazione e il riferimento al manuale.
       if latest && latest.topic === topic
         p= `Ultimo risultato: ${latest.score} su ${latest.questions.length}`
-      button#start-quiz.cp-btn.cp-btn-primary(type='button') Inizia il quiz
+      button#start-quiz.cp-btn.cp-btn-secondary(type='button') Inizia il quiz
     #quiz-body
     p#quiz-error.cp-form-error(role='alert', hidden)
 

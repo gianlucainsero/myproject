@@ -375,7 +375,9 @@
           submit.remove();
           const feedback = element('div', `cp-feedback ${result.correct ? 'cp-feedback-success' : 'cp-feedback-review'}`);
           feedback.tabIndex = -1;
-          feedback.append(element('strong', '', result.correct ? 'Risposta corretta' : 'Da ripassare'), element('p', '', result.explanation), sourceList([result.source]));
+          const status = element('strong', 'cp-feedback-title');
+          status.append(icon(result.correct ? 'fa-circle-check' : 'fa-circle-exclamation'), result.correct ? 'Risposta corretta' : 'Da ripassare');
+          feedback.append(status, element('p', '', result.explanation), sourceList([result.source]));
           body.append(feedback);
           const advance = button(result.next ? 'Prossima domanda' : 'Vedi risultato', 'cp-btn cp-btn-primary');
           advance.addEventListener('click', () => {
@@ -383,7 +385,9 @@
             else {
               const title = element('h2', '', `${result.score} su ${total} risposte corrette`);
               title.tabIndex = -1;
-              body.replaceChildren(element('span', 'cp-eyebrow', 'Risultato salvato'), title, link(result.score < total ? 'Ripassa la lezione' : 'Torna al percorso', result.score < total ? '/formazione/cie' : '/', 'cp-btn cp-btn-primary'), link('I miei progressi', '/'));
+              const actions = element('div', 'cp-study-actions');
+              actions.append(link(result.score < total ? 'Ripassa la lezione' : 'Torna al percorso', result.score < total ? '/formazione/cie' : '/', 'cp-btn cp-btn-secondary'), link('I miei progressi', '/'));
+              body.replaceChildren(element('span', 'cp-eyebrow', 'Risultato salvato'), title, actions);
               title.focus();
             }
           });
