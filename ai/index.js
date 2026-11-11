@@ -1,5 +1,5 @@
 // Modulo IA: assistente a 3 livelli e generazione quiz, sui manuali indicizzati.
-// API pubblica (vedi AGENTS.md): askAssistant, generateQuiz, search, isAiConfigured
+// API pubblica (vedi AGENTS.md): askAssistant, generateQuiz, generateLesson, search, isAiConfigured
 const { search, listDocs, loadIndex } = require('./search');
 const { generateJSON, isConfigured } = require('./llm');
 const P = require('./prompts');
@@ -14,7 +14,7 @@ function toSources(chunks, ids) {
     const c = byId.get(id);
     if (!c || seen.has(c.file)) continue;
     seen.add(c.file);
-    out.push({ title: c.title, file: c.file, section: c.heading || null });
+    out.push({ title: c.title, file: c.file, section: c.heading || null, module: c.module, chunkId: c.id });
   }
   return out;
 }
@@ -30,19 +30,20 @@ function retrievalQuery(message, history) {
 }
 
 function normalizeResult(r, chunks, area) {
-  let level = [1, 2, 3].includes(r.level) ? r.level : 1;
+  const level = [1, 2, 3].includes(r.level) ? r.level : 1;
+  const sources = toSources(chunks, r.sourceIds);
   let ticket = level === 3 ? r.ticket : null;
   if (level === 3 && !ticket) {
     ticket = { type: 'altro', priority: 'media', summary: r.answer.slice(0, 120), description: r.answer, stepsTried: [] };
   }
-  if (ticket) ticket = { ...ticket, module: P.MODULE_NAMES[area] || area, stepsTried: ticket.stepsTried || [] };
+  if (ticket) ticket = { ...ticket, module: sources[0]?.module || chunks[0]?.module || P.MODULE_NAMES[area], stepsTried: ticket.stepsTried || [] };
   return {
     level,
     answer: r.answer || '',
     steps: (Array.isArray(r.steps) ? r.steps : []).map((x) => String(x).replace(/^\s*\d+[.)]\s*/, '').trim()).filter(Boolean),
     question: r.question || null,
     choices: r.question && Array.isArray(r.choices) ? r.choices.slice(0, 4) : [],
-    sources: toSources(chunks, r.sourceIds),
+    sources,
     quizTopic: level === 3 ? null : (r.quizTopic || null),
     knowledgeGap: Boolean(r.knowledgeGap) && !(ticket && ticket.type === 'bug'),
     ticket,
@@ -52,7 +53,7 @@ function normalizeResult(r, chunks, area) {
 /**
  * @param {{message: string, history?: {role:'user'|'assistant', content:string}[], area?: string}} input
  */
-async function askAssistant({ message, history = [], area = DEFAULT_AREA }) {
+async function askAssistant({ message, history = [], area = 'tutti' }) {
   if (!message || !message.trim()) throw new Error('Messaggio vuoto');
   const chunks = search(retrievalQuery(message, history), { area, k: 8 });
 
@@ -104,17 +105,64 @@ async function generateQuiz({ topic, n = 3, area = DEFAULT_AREA }) {
       console.error('[ai] generateQuiz: errore modello, uso il quiz di riserva →', err.message);
     }
   }
-  if (!questions || !questions.length) questions = mockQuiz(topic, chunks, n);
+  const configured = isConfigured();
+  const fallback = !questions || questions.length < n;
+  const relatedSections = fallback
+    ? docChunks(area, chunks[0].file).map((chunk) => ({ ...chunk, title: chunks[0].title, file: chunks[0].file, module: chunks[0].module }))
+    : [];
+  const questionSources = [...chunks, ...relatedSections];
+  if (fallback) questions = mockQuiz(topic, questionSources, n, area);
 
-  const byId = new Map(chunks.map((c) => [c.id, c]));
+  const byId = new Map(questionSources.map((c) => [c.id, c]));
   return {
     topic,
     questions: questions.map((q) => {
       const c = byId.get(q.sourceId) || chunks[0];
-      const { sourceId, ...rest } = shuffleOptions(q);
-      return { ...rest, source: { title: c.title, file: c.file } };
+      const { question, options, correctIndex, explanation } = shuffleOptions(q);
+      return { question, options, correctIndex, explanation, source: toSources([c], [c.id])[0] };
     }),
-    mock: !isConfigured() || undefined,
+    mock: !configured || undefined,
+    fallback: (configured && fallback) || undefined,
+  };
+}
+
+async function generateLesson({ topic, area = DEFAULT_AREA }) {
+  if (!topic?.trim()) throw new Error('Argomento mancante');
+  const chunks = search(topic, { area, k: 6, maxPerDoc: 2 });
+  if (!chunks.length) throw new Error('Nessun manuale trovato per questo argomento');
+
+  const configured = isConfigured();
+  if (configured) {
+    try {
+      const { title, intro, keyPoints, steps, sourceIds } = await generateJSON({
+        system: P.lessonSystem(area),
+        messages: [{ role: 'user', content: `Argomento: ${ topic }\n\nESTRATTI DEI MANUALI:\n${ P.formatContext(chunks)}` }],
+        schema: P.lessonSchema,
+        temperature: 0.2,
+      });
+      const sources = toSources(chunks, sourceIds);
+      if (title?.trim() && intro?.trim() && keyPoints?.length >= 3 && keyPoints.length <= 5 && Array.isArray(steps) && sources.length) {
+        return { title, intro, keyPoints, steps, sources };
+      }
+    } catch (err) {
+      console.error('[ai] generateLesson: errore modello, uso la lezione di riserva →', err.message);
+    }
+  }
+
+  const primary = chunks[0];
+  const sections = docChunks(area, primary.file);
+  const steps = stepsFromDoc(sections);
+  const numbered = sections.flatMap((section) => Array.from(section.text.matchAll(/^\d+[.)]\s+(.+)$/gm), ([, point]) => point));
+  const summaries = sections.map((section) => firstSentence(section.text.replace(/^\s*\*\*Link utili:\*\*.*$/gim, '')));
+  const keyPoints = [...new Set([summaries[0], ...numbered, ...summaries])].filter(Boolean).slice(0, 5);
+  const sources = toSources([primary], [primary.id]);
+  return {
+    title: topic,
+    intro: `Ripassa la procedura descritta nel manuale «${ primary.title }».`,
+    keyPoints,
+    steps,
+    sources,
+    ...(configured ? { fallback: true } : { mock: true }),
   };
 }
 
@@ -183,7 +231,7 @@ function mockAssistant(message, chunks, area) {
       ticket: {
         type: 'bug',
         priority: urgent ? 'alta' : 'media',
-        module: P.MODULE_NAMES[area] || area,
+        module: top?.module || P.MODULE_NAMES[area],
         summary: message.length > 110 ? `${message.slice(0, 107)}...` : message,
         description: `L'operatore segnala: "${message}". Funzione coinvolta: ${topic || 'da verificare'}. ${urgent ? 'Attività con scadenza vicina.' : ''}`.trim(),
         stepsTried: ['Consultato il manuale della funzione'],
@@ -202,7 +250,7 @@ function mockAssistant(message, chunks, area) {
         : 'Nessun problema, procediamo un passo alla volta. Dimmi meglio cosa devi fare.',
       steps: [...(menu ? [`Si parte dal menu **${menu}**.`] : []), ...headings.slice(0, 6)],
       question: top ? 'Da quale di questi punti vuoi partire?' : 'Su quale attività ti serve aiuto?',
-      choices: top ? headings.slice(0, 4) : ['Carte d\'identità', 'Cambi di residenza', 'Elezioni', 'Certificati'],
+        choices: top ? headings.slice(0, 4) : ['Anagrafe', 'Elettorale', 'Protocollo', 'TARI'],
       sources,
       quizTopic: topic,
       knowledgeGap: !top,
@@ -223,16 +271,16 @@ function mockAssistant(message, chunks, area) {
   };
 }
 
-function mockQuiz(topic, chunks, n) {
-  const titles = listDocs().map((d) => d.title);
-  const menuChunks = chunks.filter((c) => /→/.test(c.text));
-  return (menuChunks.length ? menuChunks : chunks).slice(0, n).map((c) => {
+function mockQuiz(topic, chunks, n, area) {
+  const titles = [...new Set(listDocs(area).map((d) => d.title))];
+  const questions = new Map();
+  for (const c of chunks) {
     const menu = (c.text.match(/\*\*([^*]*→[^*]*)\*\*/) || [])[1];
     const wrong = titles.filter((t) => t !== c.title).sort(() => Math.random() - 0.5).slice(0, 3);
-    return menu
+    const question = menu
       ? {
         question: `Dove trovi la funzione "${c.title}"?`,
-        options: [menu, ...wrong.map((t) => `Servizi demografici → ${t}`)],
+        options: [menu, ...wrong.map((t) => `${c.module || P.MODULE_NAMES[area]} → ${t}`)],
         correctIndex: 0,
         explanation: `Il percorso corretto è ${menu}.`,
         sourceId: c.id,
@@ -244,7 +292,10 @@ function mockQuiz(topic, chunks, n) {
         explanation: `È spiegato nel manuale "${c.title}".`,
         sourceId: c.id,
       };
-  });
+    if (!questions.has(question.question)) questions.set(question.question, question);
+    if (questions.size === n) break;
+  }
+  return [...questions.values()].slice(0, n);
 }
 
-module.exports = { askAssistant, generateQuiz, search, isAiConfigured: isConfigured };
+module.exports = { askAssistant, generateQuiz, generateLesson, search, isAiConfigured: isConfigured };

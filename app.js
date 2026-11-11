@@ -250,9 +250,11 @@ app.locals.FACEBOOK_PIXEL_ID = process.env.FACEBOOK_PIXEL_ID ? process.env.FACEB
  * Primary app routes.
  */
 app.get('/', comunePilotController.home);
+app.get('/benvenuto', comunePilotController.welcome);
 app.get('/formazione/cie', comunePilotController.lesson);
 app.get('/assistente', comunePilotController.assistant);
 app.get('/quiz', comunePilotController.quiz);
+app.get('/ripasso/:id', comunePilotController.review);
 app.get('/manuali/:id', comunePilotController.manual);
 app.get('/palitalsoft', comunePilotController.dashboard);
 app.post('/api/assistant', comunePilotController.ask);
@@ -260,6 +262,9 @@ app.post('/api/assistant/resolve', comunePilotController.resolve);
 app.post('/api/tickets', comunePilotController.ticket);
 app.post('/api/quiz', comunePilotController.startQuiz);
 app.post('/api/quiz/attempt', comunePilotController.answerQuiz);
+app.post('/api/assignments/preview', comunePilotController.previewAssignment);
+app.post('/api/assignments', comunePilotController.publishAssignment);
+app.post('/palitalsoft/ripristina', comunePilotController.resetDemo);
 app.get('/login', userController.getLogin);
 app.post('/login', loginLimiter, userController.postLogin);
 app.get('/login/verify/:token', loginLimiter, userController.getLoginByEmail);

@@ -8,7 +8,7 @@ function isConfigured() {
   return Boolean(process.env.GEMINI_API_KEY) && process.env.AI_MOCK !== '1';
 }
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const REQUEST_BUDGET_MS = 6500;
 
 /**
  * Chiede al modello una risposta JSON conforme a `schema` (formato OpenAPI di Gemini).
@@ -36,41 +36,34 @@ async function generateJSON({ system, messages, schema, temperature = 0.3 }) {
     generationConfig,
   };
 
-  let lastErr;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 45000);
+  let lastErr = new Error('Tempo di risposta Gemini esaurito');
+  const deadline = Date.now() + REQUEST_BUDGET_MS;
+  for (let attempt = 0; attempt < 2 && Date.now() < deadline; attempt++) {
     try {
       const res = await fetch(`${API}/${model}:generateContent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
         body: JSON.stringify(body),
-        signal: ctrl.signal,
+        signal: AbortSignal.timeout(Math.max(1, deadline - Date.now())),
       });
-      if (res.status === 429 || res.status >= 500) {
-        lastErr = new Error(`Gemini HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`);
-        await sleep(1500 * (attempt + 1));
-        continue;
-      }
+      if (res.status === 429) throw new Error('Gemini HTTP 429: quota non disponibile');
       if (!res.ok) {
         const errText = (await res.text()).slice(0, 500);
         // Se il modello non accetta l'impostazione di "thinking", riproviamo senza.
         if (res.status === 400 && generationConfig.thinkingConfig && /thinking/i.test(errText)) {
-          console.warn('[ai] il modello non accetta thinkingConfig, riprovo senza:', errText.slice(0, 160));
+          console.warn('[ai] il modello non accetta thinkingConfig, riprovo senza');
           delete generationConfig.thinkingConfig;
           continue;
         }
-        throw new Error(`Gemini HTTP ${res.status}: ${errText}`);
+        throw new Error(`Gemini HTTP ${res.status}`);
       }
       const data = await res.json();
       const text = (data.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
       if (!text) throw new Error(`Gemini: risposta vuota (${data.candidates?.[0]?.finishReason || 'nessun candidato'})`);
       return JSON.parse(text);
     } catch (err) {
-      lastErr = err;
-      if (err.name !== 'AbortError' && !/HTTP 5|429/.test(err.message)) break;
-    } finally {
-      clearTimeout(timer);
+      lastErr = err.name === 'TimeoutError' ? new Error('Tempo di risposta Gemini esaurito') : err;
+      if (!/HTTP 5/.test(lastErr.message)) break;
     }
   }
   throw lastErr;

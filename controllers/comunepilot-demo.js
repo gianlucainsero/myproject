@@ -114,6 +114,7 @@ const dashboardExample = {
     { _id: 'DEMO-03', summary: 'Chiarimento sui filtri dell’elenco certificati', aiSummary: 'L’operatore cerca il filtro per tipologia di certificato.', municipality: 'Collebrina', type: 'formazione', priority: 'bassa', createdAt: new Date('2026-11-10T14:15:00+01:00'), example: true },
   ],
   topics: [
+    { label: 'Apertura operazioni elettorali', count: 11 },
     { label: 'Liste sezionali', count: 9 },
     { label: 'Carte d’identità', count: 7 },
     { label: 'Cambio di residenza', count: 5 },

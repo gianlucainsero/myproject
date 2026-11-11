@@ -1278,6 +1278,20 @@ a.cp-source:hover {
   height: 10px;
   margin: 5px 0 0;
 }
+
+.cp-create-review {
+  display: block;
+  margin-top: 0.5rem;
+}
+
+#ripassi,
+#assignment-preview {
+  margin-bottom: 1.25rem;
+}
+
+.cp-assignment-questions > li + li {
+  margin-top: 0.75rem;
+}
 .cp-progress-warn::-webkit-progress-value {
   background: var(--cp-level-2);
 }

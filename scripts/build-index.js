@@ -25,9 +25,33 @@ function titleOf(file, text) {
   return path.basename(file, '.md').replace(/^\d+\s*-\s*/, '').replace(/_/g, ' ');
 }
 
+function moduleOf(file) {
+  if (area === 'demografici') return 'Servizi Demografici';
+  const folder = file.split('/')[0].replace(/^\d+\s*-\s*/, '');
+  return folder === 'SERVIZI DEMOGRAFICI' ? 'Servizi Demografici' : folder;
+}
+
+function selectVersions(files) {
+  const latest = new Map();
+  const selected = [];
+  for (const file of files) {
+    const version = path.basename(file).match(/^(20\d{2})[_-](0[1-9]|1[0-2])(?:[_-]([0-3]\d))?[_-](.+)\.md$/i);
+    if (!version) {
+      selected.push(file);
+      continue;
+    }
+    const [, year, month, day = '00', name] = version;
+    const date = year + month + day;
+    const key = path.join(path.dirname(file), name.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim());
+    const current = latest.get(key);
+    if (!current || date > current.date) latest.set(key, { date, file });
+  }
+  return [...selected, ...Array.from(latest.values(), ({ file }) => file)].sort();
+}
+
 // Divide il documento per sezioni (##, ###) e spezza le sezioni troppo lunghe per paragrafi.
 function chunkDoc(text) {
-  const lines = text.split('\n');
+  const lines = text.split(/\r?\n/);
   const sections = [];
   let heading = '';
   let buf = [];
@@ -37,7 +61,7 @@ function chunkDoc(text) {
     buf = [];
   };
   for (const line of lines) {
-    const m = line.match(/^(#{2,3})\s+(.+)$/);
+    const m = line.match(/^(#{2,6})\s+(.+)$/);
     if (m) { flush(); heading = m[2].trim(); } else if (!/^#\s/.test(line)) buf.push(line);
   }
   flush();
@@ -48,7 +72,7 @@ function chunkDoc(text) {
     let cur = '';
     for (const para of s.body.split(/\n\s*\n/)) {
       if (cur && (cur.length + para.length) > MAX_CHARS) { chunks.push({ heading: s.heading, body: cur.trim() }); cur = ''; }
-      cur += para + '\n\n';
+      cur += `${para }\n\n`;
     }
     if (cur.trim()) chunks.push({ heading: s.heading, body: cur.trim() });
   }
@@ -63,7 +87,9 @@ function chunkDoc(text) {
   return merged;
 }
 
-const files = walk(SRC).sort();
+const allFiles = walk(SRC).sort();
+const manuals = allFiles.filter((file) => file !== path.join(SRC, 'INDEX.md'));
+const files = area === 'tutti' ? selectVersions(manuals) : manuals;
 const seen = new Map(); // hash testo -> file (per scartare i doppioni)
 const docs = [];
 const chunks = [];
@@ -72,16 +98,16 @@ let dupes = 0;
 for (const f of files) {
   const text = fs.readFileSync(f, 'utf8');
   const hash = crypto.createHash('md5').update(text.replace(/\s+/g, ' ').trim()).digest('hex');
-  if (seen.has(hash)) { dupes++; continue; }
+  if (seen.has(hash)) { dupes += 1; continue; }
   seen.set(hash, f);
-  const rel = path.relative(SRC, f);
+  const rel = path.relative(SRC, f).split(path.sep).join('/');
   const title = titleOf(f, text);
   const docId = docs.length;
-  docs.push({ id: docId, title, file: rel });
+  docs.push({ id: docId, title, file: rel, module: moduleOf(rel) });
   for (const c of chunkDoc(text)) {
     chunks.push({ id: chunks.length, doc: docId, heading: c.heading, text: c.body });
   }
 }
 
 fs.writeFileSync(OUT, JSON.stringify({ area, builtAt: new Date().toISOString(), docs, chunks }));
-console.log(`Indice ${area}: ${docs.length} documenti (${dupes} doppioni scartati), ${chunks.length} sezioni → ${path.relative(ROOT, OUT)}`);
+console.log(`Indice ${area}: ${allFiles.length} file, ${docs.length} documenti, ${chunks.length} sezioni (${dupes} doppioni identici, ${manuals.length - files.length} versioni datate precedenti, ${allFiles.length - manuals.length} cataloghi esclusi) → ${path.relative(ROOT, OUT)}`);

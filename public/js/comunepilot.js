@@ -54,7 +54,7 @@
   function sourceList(sources) {
     const wrapper = element('div', 'cp-sources');
     for (const source of sources) {
-      const title = source.section ? `${source.title} · ${source.section}` : source.title;
+      const title = [source.module, source.title, source.section].filter(Boolean).join(' · ');
       const label = `Fonte: ${title}`;
       const item = source.url ? link('', source.url, 'cp-source') : element('span', 'cp-source');
       item.append(icon('fa-book-open'), label);
@@ -143,11 +143,13 @@
 
     function renderTicket(draft, message) {
       const panel = document.querySelector('#ticket-template').content.firstElementChild.cloneNode(true);
+      panel.querySelector('[data-ticket-module]').textContent = draft.module || 'Cityware Online';
       const fields = panel.elements;
       const preview = panel.querySelector('.cp-ticket-preview');
       const editor = panel.querySelector('.cp-ticket-editor');
       const edit = panel.querySelector('[data-ticket-edit]');
       const confirm = panel.querySelector('button[type="submit"]');
+      const ticketStatus = panel.querySelector('.cp-ticket-note');
       fields.summary.value = draft.summary || '';
       fields.description.value = draft.description || '';
       fields.stepsTried.value = (draft.stepsTried || []).join('\n');
@@ -190,6 +192,7 @@
         busy(true);
         confirm.disabled = true;
         edit.disabled = true;
+        ticketStatus.textContent = 'Sto inviando il ticket…';
         const panelError = panel.querySelector('[role="alert"]');
         showError(panelError);
         try {
@@ -202,6 +205,7 @@
           showError(panelError, error);
           confirm.disabled = false;
           edit.disabled = false;
+          ticketStatus.textContent = 'Invio nella coda simulata.';
         } finally {
           busy(false);
           if (form.hidden && !panel.isConnected) newCase.focus();
@@ -216,7 +220,9 @@
       const block = element('div');
       if (result.quizTopic) {
         const suggestion = element('div', 'cp-quiz-suggestion');
-        suggestion.append(element('strong', '', 'Vuoi fissarlo? Fai un mini-quiz'), link('Fai il ripasso', `/quiz?topic=${encodeURIComponent(result.quizTopic)}`, 'cp-btn cp-btn-secondary'));
+        const query = new URLSearchParams({ topic: result.quizTopic });
+        if (result.sources[0]?.module && result.sources[0].module !== 'Servizi Demografici') query.set('area', 'tutti');
+        suggestion.append(element('strong', '', 'Vuoi fissarlo? Fai un mini-quiz'), link('Fai il ripasso', `/quiz?${query}`, 'cp-btn cp-btn-secondary'));
         block.append(suggestion);
       }
       if (result.question || result.level === 3) return block;
@@ -224,9 +230,14 @@
       const direct = result.level === 1;
       const resolved = button(direct ? 'Mi è servito' : 'Ho risolto');
       const help = button(direct ? 'Ho ancora un dubbio' : 'Serve ancora aiuto');
+      const status = element('p', 'cp-chat-pending');
+      status.setAttribute('role', 'status');
+      status.hidden = true;
       resolved.addEventListener('click', async () => {
         if (waiting) return;
         busy(true);
+        status.hidden = false;
+        status.textContent = 'Sto registrando la risposta…';
         showError(errorBox);
         try {
           await request('/api/assistant/resolve', { caseId });
@@ -236,6 +247,7 @@
         } catch (error) {
           showError(errorBox, error);
         } finally {
+          status.hidden = true;
           busy(false);
           if (form.hidden) newCase.focus();
           scroll();
@@ -246,7 +258,7 @@
         else submit('Serve ancora aiuto.', true);
       });
       controls.append(resolved, help);
-      block.prepend(controls);
+      block.prepend(controls, status);
       return block;
     }
 
@@ -274,7 +286,7 @@
       messages.append(prompt, pending);
       scroll();
       try {
-        const result = await request('/api/assistant', { message, area: 'demografici', caseId, escalate });
+        const result = await request('/api/assistant', { message, area: 'tutti', caseId, escalate });
         ({ caseId } = result);
         newCase.hidden = false;
         actions?.remove();
@@ -329,11 +341,102 @@
     });
   }
 
+  function setupAssignments() {
+    const panel = document.querySelector('#assignment-preview');
+    const status = document.querySelector('#assignment-status');
+    const content = document.querySelector('#assignment-content');
+    const errorBox = document.querySelector('#assignment-error');
+    const publish = document.querySelector('#assignment-publish');
+    const close = document.querySelector('#assignment-close');
+    const triggers = document.querySelectorAll('.cp-create-review');
+    let trigger;
+    let draft;
+
+    function setPending(pending, label = '') {
+      status.textContent = label;
+      content.setAttribute('aria-busy', String(pending));
+      close.disabled = pending;
+      publish.disabled = pending;
+      triggers.forEach((control) => {
+        control.disabled = pending;
+      });
+    }
+
+    function renderPreview({ lesson, quiz, target }) {
+      content.append(element('h3', '', lesson.title), element('p', '', lesson.intro), element('p', '', target));
+      const points = element('ul');
+      lesson.keyPoints.forEach((point) => points.append(responseText('li', '', point)));
+      content.append(points);
+      if (lesson.steps.length) content.append(renderSteps(lesson.steps, 1));
+      content.append(sourceList(lesson.sources), element('h3', '', 'Quiz di ripasso'));
+      const questions = element('ol', 'cp-assignment-questions');
+      quiz.forEach((question) => {
+        const item = element('li', '', question.question);
+        const options = element('ul');
+        question.options.forEach((option, index) => options.append(element('li', index === question.correctIndex ? 'fw-bold' : '', option)));
+        item.append(options);
+        questions.append(item);
+      });
+      content.append(questions);
+    }
+
+    triggers.forEach((control) =>
+      control.addEventListener('click', async () => {
+        trigger = control;
+        draft = null;
+        panel.hidden = false;
+        publish.hidden = true;
+        content.replaceChildren();
+        showError(errorBox);
+        panel.scrollIntoView({ block: 'start' });
+        setPending(true, 'Sto preparando il ripasso dai manuali…');
+        try {
+          draft = await request('/api/assignments/preview', { topic: control.dataset.topic, origin: control.dataset.origin });
+          renderPreview(draft);
+          publish.hidden = false;
+        } catch (error) {
+          showError(errorBox, error);
+        } finally {
+          setPending(false);
+          (draft ? publish : close).focus({ preventScroll: true });
+        }
+      }),
+    );
+
+    close.addEventListener('click', () => {
+      panel.hidden = true;
+      trigger.focus();
+    });
+
+    publish.addEventListener('click', async () => {
+      setPending(true, 'Sto assegnando il ripasso…');
+      showError(errorBox);
+      try {
+        const saved = await request('/api/assignments', { previewId: draft.previewId });
+        const confirmation = document.querySelector('#assignment-confirmation');
+        const entry = element('div', 'cp-topic-row');
+        entry.append(element('strong', '', saved.title), element('span', '', saved.target), element('span', '', '0 completamenti'));
+        document.querySelector('#assignments-empty')?.remove();
+        document.querySelector('#assignment-list').prepend(entry);
+        confirmation.hidden = false;
+        confirmation.textContent = `Ripasso assegnato a ${saved.target}`;
+        confirmation.tabIndex = -1;
+        panel.hidden = true;
+        confirmation.focus();
+      } catch (error) {
+        showError(errorBox, error);
+      } finally {
+        setPending(false);
+      }
+    });
+  }
+
   function startQuiz() {
     const quiz = document.querySelector('#quiz');
     const start = document.querySelector('#start-quiz');
     const body = document.querySelector('#quiz-body');
     const errorBox = document.querySelector('#quiz-error');
+    const statusBox = document.querySelector('#quiz-status');
     let quizId;
     let total;
 
@@ -368,6 +471,8 @@
         if (submit.disabled) return;
         submit.disabled = true;
         showError(errorBox);
+        statusBox.hidden = false;
+        statusBox.textContent = 'Sto verificando la risposta…';
         try {
           const answer = Number(new FormData(form).get('answer'));
           const result = await request('/api/quiz/attempt', { id: quizId, index, answer });
@@ -382,6 +487,7 @@
           const advance = button(result.next ? 'Prossima domanda' : 'Vedi risultato', 'cp-btn cp-btn-primary');
           advance.addEventListener('click', () => {
             if (result.next) renderQuestion(result.next, index + 1);
+            else if (quiz.dataset.assignment) window.location.assign('/');
             else {
               const title = element('h2', '', `${result.score} su ${total} risposte corrette`);
               title.tabIndex = -1;
@@ -396,6 +502,8 @@
         } catch (error) {
           showError(errorBox, error);
           submit.disabled = false;
+        } finally {
+          statusBox.hidden = true;
         }
       });
     }
@@ -403,18 +511,28 @@
     start.addEventListener('click', async () => {
       start.disabled = true;
       showError(errorBox);
+      statusBox.hidden = false;
+      statusBox.textContent = 'Sto preparando il quiz…';
       try {
-        const result = await request('/api/quiz', { topic: quiz.dataset.topic });
+        const result = await request('/api/quiz', { topic: quiz.dataset.topic, area: quiz.dataset.area, assignmentId: quiz.dataset.assignment });
         ({ id: quizId, total } = result);
         start.closest('.cp-quiz-start').hidden = true;
         renderQuestion(result.question, 0);
       } catch (error) {
         showError(errorBox, error);
         start.disabled = false;
+      } finally {
+        statusBox.hidden = true;
       }
     });
   }
 
   if (document.querySelector('#chat-form')) startChat();
   if (document.querySelector('#quiz')) startQuiz();
+  if (document.querySelector('#assignment-preview')) setupAssignments();
+  const reset = document.querySelector('#reset-demo');
+  reset?.addEventListener('submit', () => {
+    reset.querySelector('button').disabled = true;
+    document.querySelector('#reset-status').textContent = 'Sto ripristinando la demo…';
+  });
 })();

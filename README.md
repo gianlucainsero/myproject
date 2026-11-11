@@ -1,14 +1,30 @@
-# ComunePilot
+# Prototipo Palitalsoft × Unicam
 
 Prototipo per la formazione e l’assistenza degli operatori comunali, realizzato per l’hackathon Palitalsoft × Unicam.
 
-Con MongoDB in esecuzione e le dipendenze installate, avvia `npm start` e apri [localhost:8080](http://localhost:8080). Dalla home puoi aprire la microlezione CIE, fare il quiz, provare i tre percorsi in `/assistente` e consultare la coda in `/palitalsoft`. Le attività demo sono visibili nel browser che le ha create e i ticket sono simulati.
+## Avvio
 
-Assistente e quiz usano il modulo `ai/index.js` e l’indice dei manuali dei Servizi Demografici. Imposta `GEMINI_API_KEY` nell’ambiente del server o nel file locale `.env.example`, ignorato da Git. `GEMINI_MODEL` è facoltativo e ha valore predefinito `gemini-2.5-flash`. Senza chiave, o con `AI_MOCK=1`, il modulo risponde in modalità di riserva usando l’indice. Imposta `COMUNEPILOT_LIVE_AI=false` per usare le risposte dimostrative fisse.
+1. Installa le dipendenze con `npm ci` usando Node.js 24 e avvia MongoDB.
+2. Imposta `MONGODB_URI` e `SESSION_SECRET` nell’ambiente o nel file locale `.env.example`, ignorato da Git.
+3. Avvia `npm start` e apri [localhost:8080](http://localhost:8080).
 
-Per verificare il modulo esegui `node scripts/test-ai.js`. L’output indica la modalità usata e mostra i tre scenari dell’assistente e il quiz.
+Per usare Gemini, imposta `GEMINI_API_KEY` nello stesso ambiente o file. `GEMINI_MODEL` è facoltativo e ha valore predefinito `gemini-2.5-flash`. Per la demo in riserva, avvia con `AI_MOCK=1` e lascia `COMUNEPILOT_LIVE_AI=true`. Su PowerShell usa `$env:AI_MOCK='1'; npm start`. I manuali e i rispettivi indici sono inclusi nel repository.
 
-Codex ha collaborato allo sviluppo del sito, Claude al modulo IA e Gemini genera le risposte quando è configurato. La foto illustrativa del municipio è stata generata con OpenAI. Il logo Palitalsoft proviene dal materiale dell’hackathon.
+## Percorso della demo
+
+1. Dalla home apri **Vista nuovo dipendente**. Segui **Inizia il percorso** per vedere la microlezione CIE e il mini-quiz.
+2. Nell’**Assistente** prova le tre domande suggerite per mostrare una risposta con fonte, la guida elettorale con checklist e la bozza del ticket di stampa. I ticket finiscono nella coda simulata.
+3. Nel **Cruscotto Palitalsoft**, scegli **Crea ripasso** accanto ad **Apertura operazioni elettorali**. Controlla l’anteprima e premi **Assegna agli operatori**.
+4. Torna alla home, apri il nuovo ripasso e completa le tre domande. Nel cruscotto, **Ripassi assegnati** mostra il completamento e il punteggio medio.
+5. Chiedi all’assistente «Come faccio il calcolo degli avvisi bonari TARI?» o «Come protocollo un documento in arrivo?» per mostrare i moduli aggiuntivi.
+
+In fondo al cruscotto, **Ripristina demo** rimuove le attività della sessione corrente. La coda torna a mostrare i dati simulati e le eventuali attività di altre sessioni restano disponibili.
+
+Esegui `node scripts/test-ai.js` per verificare modalità, tempi, fonti e livelli delle cinque domande, oltre al quiz e alla microlezione.
+
+## Strumenti di IA
+
+Codex ha collaborato allo sviluppo dell’app e Claude al modulo IA e ai contenuti. Gemini genera risposte, microlezioni e quiz quando è disponibile. OpenAI ha generato l’immagine illustrativa del municipio. Il logo Palitalsoft proviene dal materiale dell’hackathon.
 
 ---
 

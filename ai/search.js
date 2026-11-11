@@ -41,7 +41,7 @@ function loadIndex(area) {
 
 /**
  * Restituisce le sezioni più pertinenti alla domanda.
- * @returns [{ id, title, file, heading, text, score }]
+ * @returns [{ id, title, file, module, heading, text, score }]
  */
 function search(query, { area = 'demografici', k = 8, maxPerDoc = 3 } = {}) {
   const { items, idf, avgLen } = loadIndex(area);
@@ -55,7 +55,7 @@ function search(query, { area = 'demografici', k = 8, maxPerDoc = 3 } = {}) {
     for (const t of q) {
       const f = it.tf.get(t);
       if (!f) continue;
-      matched++;
+      matched += 1;
       s += idf.get(t) * ((f * (K1 + 1)) / (f + K1 * (1 - B + B * (it.len / avgLen))));
     }
     if (s > 0) scored.push({ it, s: s * (1 + 0.15 * matched) });
@@ -68,7 +68,7 @@ function search(query, { area = 'demografici', k = 8, maxPerDoc = 3 } = {}) {
     const n = perDoc.get(it.doc.id) || 0;
     if (n >= maxPerDoc) continue;
     perDoc.set(it.doc.id, n + 1);
-    out.push({ id: it.chunk.id, title: it.doc.title, file: it.doc.file, heading: it.chunk.heading, text: it.chunk.text, score: +s.toFixed(3) });
+    out.push({ id: it.chunk.id, title: it.doc.title, file: it.doc.file, module: it.doc.module || 'Servizi Demografici', heading: it.chunk.heading, text: it.chunk.text, score: +s.toFixed(3) });
     if (out.length >= k) break;
   }
   return out;

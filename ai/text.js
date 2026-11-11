@@ -33,7 +33,6 @@ const SYNONYMS = {
   voto: 'elettorale votanti seggio',
   scrutatori: 'scrutatori albo nomina seggio',
   cie: 'carta identita elettronica',
-  documento: 'carta identita',
   residenza: 'residenza iscrizione immigrazione variazione indirizzo',
   trasferimento: 'emigrazione immigrazione cambio residenza',
   nascita: 'nascita atto stato civile',
@@ -45,6 +44,9 @@ const SYNONYMS = {
   stranieri: 'cittadinanza permesso soggiorno straniero',
   password: 'accesso credenziali',
   stampa: 'stampa stampe',
+  protocollo: 'protocollazione registrazione',
+  protocollare: 'protocollo protocollazione',
+  arrivo: 'arrivi entrata',
 };
 
 function expandQuery(text) {
