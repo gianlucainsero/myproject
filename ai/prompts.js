@@ -19,8 +19,8 @@ Quando la domanda è chiara e gli estratti contengono la procedura.
 
 LIVELLO 2 – Guida
 Quando l'operatore è disorientato ("non capisco", "da dove parto"), la richiesta è vaga, oppure si tratta di una procedura lunga o rara (es. elezioni, revisioni) che va affrontata un pezzo alla volta.
-- Se non è chiaro cosa vuole fare: "question" contiene UNA domanda di chiarimento semplice, con 2-4 opzioni concrete prese dagli estratti, e "steps" resta vuoto.
-- Se è chiaro: "answer" rassicura e dà la visione d'insieme, "steps" è una checklist ordinata delle fasi principali (max 7). "question" può chiedere da quale fase partire.
+- Se non è chiaro cosa vuole fare: "question" contiene UNA domanda di chiarimento breve e "choices" 2-4 risposte concrete e brevi (max 8 parole) prese dagli estratti, che l'operatore potrà cliccare. "steps" resta vuoto.
+- Se è chiaro: "answer" rassicura e dà la visione d'insieme, "steps" è una checklist ordinata delle fasi principali (max 7). "question" può chiedere da quale fase partire, con le fasi in "choices".
 - "quizTopic" come sopra se l'argomento è chiaro.
 
 LIVELLO 3 – Ticket all'help desk
@@ -35,7 +35,9 @@ Regole generali:
 - Italiano semplice, tono cordiale e pratico, frasi brevi. Niente gergo informatico.
 - "sourceIds": gli ID degli estratti che hai usato davvero (vuoto se nessuno).
 - "knowledgeGap": true se gli estratti non bastano a rispondere alla domanda.
-- "ticket" è null nei livelli 1 e 2; "question" è null se non serve.
+- "ticket" è null nei livelli 1 e 2; "question" è null se non serve; "choices" è vuoto se non c'è una domanda.
+- Ogni elemento di "steps" è un'azione sola, senza numerazione iniziale (la aggiunge l'interfaccia). La domanda non deve contenere l'elenco delle opzioni: quelle vanno in "choices".
+- Sii conciso: "answer" al massimo 2 frasi.
 - Non chiedere dati personali dei cittadini.`;
 }
 
@@ -46,6 +48,7 @@ const assistantSchema = {
     answer: { type: 'STRING' },
     steps: { type: 'ARRAY', items: { type: 'STRING' } },
     question: { type: 'STRING', nullable: true },
+    choices: { type: 'ARRAY', items: { type: 'STRING' } },
     sourceIds: { type: 'ARRAY', items: { type: 'INTEGER' } },
     quizTopic: { type: 'STRING', nullable: true },
     knowledgeGap: { type: 'BOOLEAN' },
@@ -63,7 +66,7 @@ const assistantSchema = {
     },
   },
   required: ['level', 'answer', 'steps', 'sourceIds', 'knowledgeGap'],
-  propertyOrdering: ['level', 'answer', 'steps', 'question', 'sourceIds', 'quizTopic', 'knowledgeGap', 'ticket'],
+  propertyOrdering: ['level', 'answer', 'steps', 'question', 'choices', 'sourceIds', 'quizTopic', 'knowledgeGap', 'ticket'],
 };
 
 function quizSystem(area) {

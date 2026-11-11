@@ -52,6 +52,7 @@ await askAssistant({
   answer: 'testo markdown per l\'operatore',
   steps: ['Passo 1 ...', 'Passo 2 ...'],      // può essere vuoto
   question: 'domanda di chiarimento' | null,  // solo livello 2, quando serve capire meglio
+  choices: ['Aprire una nuova elezione', '...'], // risposte cliccabili alla domanda (bottoni): al click inviarle come nuovo messaggio
   sources: [{ title: 'Gestione carte d\'identità', file: '171 - Gestione carte d\'identità.md' }],
   quizTopic: 'Carte d\'identità' | null,      // se non null, mostrare il bottone "Fai un mini-quiz"
   knowledgeGap: false,                        // true = i manuali non bastano (serve al cruscotto: "lacune nei manuali")
@@ -90,7 +91,7 @@ await generateQuiz({ topic: 'Carte d\'identità', n: 3 });
 
 **Pagine operatore**
 - `/` **Home / Il mio percorso**: moduli del Comune, progress bar delle competenze per area, "ripassi di oggi". I dati possono essere finti o seed.
-- `/assistente` **Chat**: badge del livello ben visibile (colori di Mattia), passi numerati, fonti cliccabili. Al livello 3 la card del ticket ha i bottoni "Invia all'help desk" e "Modifica". Al bottone del mini-quiz si apre il quiz.
+- `/assistente` **Chat**: mentre si aspetta la risposta (alcuni secondi) mostrare un indicatore "Sto cercando nei manuali…". Badge del livello ben visibile (colori di Mattia), passi numerati, fonti cliccabili. Al livello 3 la card del ticket ha i bottoni "Invia all'help desk" e "Modifica". Al bottone del mini-quiz si apre il quiz.
 - `/quiz` **Quiz**: una domanda alla volta, feedback immediato con spiegazione e fonte, punteggio finale.
 
 **Pagine Palitalsoft** (ruolo admin, oppure route separata `/palitalsoft` senza login per comodità in demo)

@@ -1,5 +1,6 @@
 // Wrapper minimale per Gemini (API REST, nessuna dipendenza). Per cambiare fornitore basta riscrivere generateJSON.
-// Variabili .env: GEMINI_API_KEY (obbligatoria), GEMINI_MODEL (default gemini-2.5-flash)
+// Variabili (.env.example): GEMINI_API_KEY (obbligatoria), GEMINI_MODEL (default gemini-2.5-flash),
+// GEMINI_THINKING_LEVEL (modelli Gemini 3.x, default "low" = più veloce), GEMINI_THINKING_BUDGET (modelli 2.5)
 
 const API = 'https://generativelanguage.googleapis.com/v1beta/models';
 
@@ -20,9 +21,14 @@ async function generateJSON({ system, messages, schema, temperature = 0.3 }) {
     responseMimeType: 'application/json',
     responseSchema: schema,
   };
-  // Su gemini-2.5-flash disattiviamo il "thinking" per avere risposte più rapide in demo.
-  const budget = process.env.GEMINI_THINKING_BUDGET ?? (model.includes('2.5-flash') ? '0' : undefined);
-  if (budget !== undefined && budget !== '') generationConfig.thinkingConfig = { thinkingBudget: Number(budget) };
+  // Riduciamo il "ragionamento" interno del modello: risposte molto più rapide in demo.
+  if (/gemini-2\.5/.test(model)) {
+    const budget = process.env.GEMINI_THINKING_BUDGET ?? (model.includes('flash') ? '0' : '');
+    if (budget !== '') generationConfig.thinkingConfig = { thinkingBudget: Number(budget) };
+  } else if (/gemini-[3-9]/.test(model)) {
+    const level = process.env.GEMINI_THINKING_LEVEL ?? 'low';
+    if (level) generationConfig.thinkingConfig = { thinkingLevel: level };
+  }
 
   const body = {
     systemInstruction: { parts: [{ text: system }] },
@@ -46,7 +52,16 @@ async function generateJSON({ system, messages, schema, temperature = 0.3 }) {
         await sleep(1500 * (attempt + 1));
         continue;
       }
-      if (!res.ok) throw new Error(`Gemini HTTP ${res.status}: ${(await res.text()).slice(0, 500)}`);
+      if (!res.ok) {
+        const errText = (await res.text()).slice(0, 500);
+        // Se il modello non accetta l'impostazione di "thinking", riproviamo senza.
+        if (res.status === 400 && generationConfig.thinkingConfig && /thinking/i.test(errText)) {
+          console.warn('[ai] il modello non accetta thinkingConfig, riprovo senza:', errText.slice(0, 160));
+          delete generationConfig.thinkingConfig;
+          continue;
+        }
+        throw new Error(`Gemini HTTP ${res.status}: ${errText}`);
+      }
       const data = await res.json();
       const text = (data.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
       if (!text) throw new Error(`Gemini: risposta vuota (${data.candidates?.[0]?.finishReason || 'nessun candidato'})`);
