@@ -265,53 +265,6 @@
   max-width: 1190px;
   margin: 0 auto;
 }
-.cp-hero {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  min-height: 310px;
-  display: flex;
-  align-items: center;
-  border-radius: var(--cp-radius);
-  color: white;
-  background: linear-gradient(115deg, #103556 8%, #0d4e83 61%, #1473a0 100%);
-}
-.cp-hero-photo {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background:
-    linear-gradient(90deg, #113859 0%, #113859 35%, rgba(16, 54, 88, 0.96) 43%, rgba(13, 70, 115, 0.65) 64%, rgba(6, 45, 72, 0.34) 100%),
-    url('/municipio.webp') right 42% / 69% auto no-repeat;
-}
-.cp-hero-content {
-  padding: clamp(24px, 4vw, 51px);
-  max-width: 650px;
-}
-.cp-hero-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  color: #aee6ff;
-  font-size: 0.77rem;
-  font-weight: 750;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-.cp-hero h1 {
-  margin: 11px 0 13px;
-  font-size: clamp(2.5rem, 5.3vw, 4.35rem);
-  letter-spacing: -0.065em;
-}
-.cp-hero p {
-  max-width: 430px;
-  color: #edf6ff;
-  font-size: clamp(0.97rem, 1.7vw, 1.09rem);
-}
-.cp-hero .cp-btn {
-  margin-top: 23px;
-}
-
 .cp-btn {
   display: inline-flex;
   justify-content: center;
@@ -390,29 +343,6 @@
   text-underline-offset: 3px;
 }
 
-.cp-home-grid {
-  display: grid;
-  grid-template-columns: 1.38fr 1fr;
-  gap: 23px;
-  margin: 27px 0 22px;
-}
-.cp-home-grid > section {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.cp-section-heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-.cp-section-heading > span {
-  color: var(--cp-muted);
-  font-size: 0.79rem;
-  font-weight: 650;
-}
 .cp-card {
   min-width: 0;
   background: white;
@@ -420,61 +350,97 @@
   border-radius: var(--cp-radius);
   box-shadow: var(--cp-shadow);
 }
-.cp-lesson-card {
-  flex: 1;
-  display: flex;
-  align-items: flex-start;
-  gap: 18px;
-  padding: 19px;
-}
-.cp-lesson-symbol {
-  display: grid;
-  place-items: center;
-  width: 104px;
-  min-height: 122px;
-  flex: 0 0 104px;
-  border-radius: 12px;
-  color: #0759a4;
-  background: linear-gradient(145deg, #e7f5ff, #d6e8ff);
-  font-size: 2.5rem;
-}
-.cp-lesson-card-content {
-  min-width: 0;
-}
-.cp-lesson-card h3 {
-  margin: 1px 0 6px;
-}
-.cp-lesson-card p,
-.cp-progress-card p,
-.cp-help p {
-  color: var(--cp-muted);
-  font-size: 0.88rem;
-}
-.cp-meta {
+.cp-review-banner {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px 13px;
-  margin: 10px 0;
-  color: var(--cp-muted);
-  font-size: 0.76rem;
-}
-.cp-meta span {
-  display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 12px 20px;
+  padding: clamp(16px, 3vw, 24px);
+  margin-bottom: 18px;
+  background: var(--cp-blue);
+  color: white;
 }
-.cp-progress-card {
-  flex: 1;
-  padding: 19px;
+.cp-review-banner .cp-feature-icon {
+  width: 52px;
+  height: 52px;
+  flex-basis: 52px;
+  color: white;
+  background: #ffffff29;
 }
-.cp-progress-top {
+.cp-review-banner p {
+  color: var(--cp-pale);
+  margin-top: 5px;
+}
+.cp-review-banner .cp-btn {
+  margin-left: auto;
+}
+.cp-home-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+.cp-home-side {
+  display: grid;
+  gap: 18px;
+}
+.cp-skill + .cp-skill {
+  margin-top: 14px;
+}
+.cp-skill-label {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 11px;
-  margin-bottom: 13px;
+  gap: 4px 8px;
 }
-.cp-progress-top p {
-  margin-top: 3px;
+.cp-skill-status {
+  border-radius: 6px;
+  background: var(--cp-config-tint);
+  padding: 2px 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.cp-skill-score {
+  margin-left: auto;
+  font-weight: 600;
+}
+.cp-sample-mark {
+  color: var(--cp-muted);
+  font-size: 0.75rem;
+}
+.cp-module-list {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.cp-module-list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+}
+.cp-module-list li + li {
+  border-top: 1px solid var(--cp-border);
+}
+.cp-module-list small {
+  display: block;
+  color: var(--cp-muted);
+  font-size: 0.8rem;
+}
+.cp-module-status {
+  color: var(--cp-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.cp-module-status.is-complete {
+  color: var(--cp-level-1-ink);
+}
+.cp-module-status.is-active {
+  color: var(--cp-blue);
+}
+.cp-path-cta {
+  width: 100%;
 }
 .cp-feature-icon {
   display: grid;
@@ -484,24 +450,8 @@
   height: 41px;
   border-radius: 10px;
   color: var(--cp-blue);
-  background: #e7f3ff;
+  background: var(--cp-pale);
   font-size: 1rem;
-}
-.cp-progress-card .cp-progress-empty {
-  padding: 10px 11px;
-  background: #f3f7fb;
-  border-radius: 7px;
-}
-.cp-progress-score {
-  display: flex;
-  align-items: baseline;
-  gap: 7px;
-  color: var(--cp-muted);
-  font-size: 0.81rem;
-}
-.cp-progress-score strong {
-  color: var(--cp-blue-deep);
-  font-size: 1.25rem;
 }
 .cp-progress {
   display: block;
@@ -527,7 +477,22 @@
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 14px;
+  background: var(--cp-level-1-tint);
+  border-color: var(--cp-level-1);
+  color: var(--cp-level-1-ink);
   padding: 15px 19px;
+}
+.cp-help .cp-feature-icon {
+  color: var(--cp-level-1);
+  background: white;
+}
+.cp-btn-help {
+  background: var(--cp-level-1);
+  color: white;
+}
+.cp-btn-help:hover {
+  background: var(--cp-level-1-ink);
+  color: white;
 }
 .cp-help h2 {
   margin-bottom: 2px;
@@ -1213,15 +1178,6 @@ a.cp-source:hover {
   .cp-detail-grid {
     gap: 15px;
   }
-  .cp-lesson-symbol {
-    width: 66px;
-    flex-basis: 66px;
-    min-height: 80px;
-    font-size: 1.9rem;
-  }
-  .cp-lesson-card {
-    gap: 11px;
-  }
 }
 
 @media (max-width: 850px) {
@@ -1244,9 +1200,6 @@ a.cp-source:hover {
   .cp-nav-link {
     padding: 6px 10px;
     min-height: 39px;
-  }
-  .cp-hero {
-    min-height: 280px;
   }
 }
 
@@ -1296,12 +1249,8 @@ a.cp-source:hover {
   .cp-detail-grid {
     grid-template-columns: 1fr;
   }
-  .cp-hero {
-    min-height: 248px;
-  }
-  .cp-hero-photo {
-    background-size: cover;
-    background-position: 56% center;
+  .cp-review-banner .cp-btn {
+    margin-left: 0;
   }
   .cp-help {
     grid-template-columns: auto 1fr;

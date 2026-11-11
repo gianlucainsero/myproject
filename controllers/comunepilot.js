@@ -22,8 +22,8 @@ const owner = (req) => {
 };
 
 const locals = (page, title) => ({ page, title });
-const latestQuiz = (req) =>
-  Quiz.findOne({ owner: owner(req), completedAt: { $exists: true } })
+const latestQuiz = (req, topic) =>
+  Quiz.findOne({ owner: owner(req), completedAt: { $exists: true }, ...(topic ? { topic } : {}) })
     .sort({ completedAt: -1 })
     .lean();
 let indexedSources;
@@ -63,7 +63,7 @@ const sourceLink = (source, req) => {
 };
 
 exports.home = async (req, res) => {
-  res.render('comunepilot/home', { ...locals('home', 'Il mio percorso'), latest: await latestQuiz(req) });
+  res.render('comunepilot/home', { ...locals('home', 'Il mio percorso'), latest: await latestQuiz(req, demo.topic) });
 };
 
 exports.lesson = async (req, res) => {
