@@ -1,0 +1,43 @@
+extends layout
+
+block content
+  mixin richText(value)
+    each part, index in value.split(/\*\*([^*\n]+)\*\*/)
+      if index % 2
+        strong= part
+      else
+        = part
+  a.cp-back(href='/')
+    i.fa-solid.fa-arrow-left(aria-hidden='true')
+    | Torna al percorso
+  header.cp-page-intro
+    span.cp-eyebrow Ripasso assegnato da Palitalsoft
+    h1= lesson.title
+    p= lesson.intro
+  article.cp-card.cp-document
+    h2 Punti chiave
+    ul
+      each point in lesson.keyPoints
+        li
+          +richText(point)
+    if lesson.steps.length
+      h2 Passi in Cityware Online
+      ol.cp-steps
+        each step in lesson.steps
+          li
+            +richText(step)
+    if sources.length
+      h2 Fonti dai manuali
+      .cp-sources
+        each source in sources
+          if source.url
+            a.cp-source(href=source.url)= source.title
+          else
+            span.cp-source= source.title
+  if completion
+    p.cp-feedback.cp-feedback-success= 'Ripasso completato · ' + completion.score + ' su ' + completion.total + ' risposte corrette'
+  else
+    include quiz-content.pug
+
+block scripts
+  script(src='/js/comunepilot.js?v=' + getFileHash('/js/comunepilot.js'), defer)

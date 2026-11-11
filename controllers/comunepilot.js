@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 const ai = require('../ai');
 const { loadIndex } = require('../ai/search');
-const { Case, Quiz } = require('../models/ComunePilot');
+const { Assignment, Case, Quiz } = require('../models/ComunePilot');
 const demo = require('./comunepilot-demo');
 
 const area = 'demografici';
+const assignmentTarget = 'Servizi Demografici – tutti i Comuni';
 const useTeamAI = () => process.env.COMUNEPILOT_LIVE_AI !== 'false';
 const aiModule = () => (useTeamAI() ? ai : demo);
 
@@ -63,7 +64,17 @@ const sourceLink = (source, req) => {
 };
 
 exports.home = async (req, res) => {
-  res.render('comunepilot/home', { ...locals('home', 'Il mio percorso'), latest: await latestQuiz(req, demo.topic) });
+  const identity = owner(req);
+  const [latest, assignment] = await Promise.all([
+    latestQuiz(req, demo.topic),
+    Assignment.findOne({ 'completions.owner': { $ne: identity } })
+      .sort({ createdAt: -1 })
+      .select('lesson.title')
+      .lean(),
+  ]);
+  const { completedReview } = req.session;
+  delete req.session.completedReview;
+  res.render('comunepilot/home', { ...locals('home', 'Il mio percorso'), latest, assignment, completedReview });
 };
 
 exports.lesson = async (req, res) => {
@@ -78,6 +89,16 @@ exports.assistant = (req, res) => {
 
 exports.quiz = async (req, res) => {
   res.render('comunepilot/quiz', { ...locals('quiz', 'Mini-quiz'), topic: trainingTopic(text(req.query.topic, 100)) || demo.topic, latest: await latestQuiz(req) });
+};
+
+exports.review = async (req, res) => {
+  const identity = owner(req);
+  const assignment = validId(req.params.id) ? await Assignment.findById(req.params.id).lean() : null;
+  if (!assignment) return res.status(404).send('Ripasso non disponibile.');
+  const { lesson, topic, _id, completions } = assignment;
+  const sources = lesson.sources.map((source) => sourceLink(source, req));
+  const completion = completions.find((entry) => entry.owner === identity);
+  res.render('comunepilot/review', { ...locals('home', lesson.title), lesson, sources, completion, topic, assignmentId: _id.toString() });
 };
 
 exports.manual = (req, res) => {
@@ -106,11 +127,12 @@ function rankDashboardRows(values, examples) {
 exports.dashboard = async (req, res) => {
   const identity = owner(req);
   const { dashboardExample: example } = demo;
-  const [cases, quizzes] = await Promise.all([
+  const [cases, quizzes, assignments] = await Promise.all([
     Case.find({ owner: identity }).select('topic level resolvedAt ticket draft.description manualGaps').lean(),
-    Quiz.find({ owner: identity, completedAt: { $exists: true } })
+    Quiz.find({ owner: identity, completedAt: { $exists: true }, assignment: { $exists: false } })
       .select('topic questions answers score')
       .lean(),
+    Assignment.find().sort({ createdAt: -1 }).select('topic lesson.title target completions.score completions.total').lean(),
   ]);
   const resolved = cases.filter((entry) => entry.resolvedAt && !entry.ticket);
   const closed = cases.filter((entry) => entry.resolvedAt || entry.ticket).length;
@@ -133,8 +155,9 @@ exports.dashboard = async (req, res) => {
     });
   }
   const difficulty = Array.from(errors.values()).sort((first, second) => second.count - first.count)[0];
-  const questionCount = quizzes.reduce((total, quiz) => total + quiz.questions.length, 0);
-  const quizCorrect = quizzes.reduce((total, quiz) => total + quiz.score, 0);
+  const completions = assignments.flatMap((assignment) => assignment.completions);
+  const questionCount = quizzes.reduce((total, quiz) => total + quiz.questions.length, 0) + completions.reduce((total, entry) => total + entry.total, 0);
+  const quizCorrect = quizzes.reduce((total, quiz) => total + quiz.score, 0) + completions.reduce((total, entry) => total + entry.score, 0);
   const requestedType = req.query.tipo;
   const filter = typeof requestedType === 'string' && Object.hasOwn(ticketTypes, requestedType) ? requestedType : '';
   const actualTickets = cases.filter((entry) => entry.ticket).map((entry) => ({ _id: entry._id, ...entry.ticket, municipality: 'Vallechiara', aiSummary: entry.draft?.description || '', urgency: urgencyLabels[entry.ticket.urgency] }));
@@ -145,7 +168,7 @@ exports.dashboard = async (req, res) => {
   const metrics = [
     { label: 'Ticket evitati', value: resolved.length + example.resolved, detail: `${resolved.length} dalla sessione`, icon: 'fa-circle-check' },
     { label: 'Risolte al livello 1', value: `${Math.round((100 * (resolvedDirect + example.resolvedDirect)) / (closed + example.closed))}%`, detail: 'Sulle richieste chiuse', icon: 'fa-comment-dots' },
-    { label: 'Competenza media', value: `${Math.round((100 * (quizCorrect + example.quizCorrect)) / (questionCount + example.quizQuestions))}%`, detail: `${quizzes.length} quiz dalla sessione`, icon: 'fa-list-check' },
+    { label: 'Competenza media', value: `${Math.round((100 * (quizCorrect + example.quizCorrect)) / (questionCount + example.quizQuestions))}%`, detail: `${quizzes.length} quiz della sessione · ${completions.length} ripassi completati`, icon: 'fa-list-check' },
     { label: 'Ticket in coda', value: queue.length, detail: `${highPriority} a priorità alta`, icon: 'fa-ticket' },
   ];
   const requestedTopics = rankDashboardRows(cases.map((entry) => entry.topic).filter(Boolean), example.topics).slice(0, 6);
@@ -164,7 +187,40 @@ exports.dashboard = async (req, res) => {
     requestedTopics,
     manualGaps,
     difficulty,
+    assignments: assignments.map(({ topic, lesson, target, completions }) => {
+      const score = completions.reduce((sum, entry) => sum + entry.score, 0);
+      const total = completions.reduce((sum, entry) => sum + entry.total, 0);
+      return { topic, title: lesson.title, target, count: completions.length, percent: total ? Math.round((100 * score) / total) : null };
+    }),
   });
+};
+
+const validQuestion = (question) => question?.question && Array.isArray(question.options) && question.options.length >= 2 && Number.isInteger(question.correctIndex) && question.options[question.correctIndex] && question.source?.file;
+
+exports.previewAssignment = async (req, res) => {
+  const topic = text(req.body?.topic, 180);
+  const { origin } = req.body || {};
+  if (!topic || !['difficoltà', 'lacuna'].includes(origin)) return res.status(400).json({ error: 'Scegli un argomento dal cruscotto.' });
+
+  try {
+    const [lesson, quiz] = await Promise.all([ai.generateLesson({ topic, area }), ai.generateQuiz({ topic, n: 3, area })]);
+    if (lesson.keyPoints.length < 3 || quiz.questions.length !== 3 || !quiz.questions.every(validQuestion)) {
+      return res.status(422).json({ error: 'I manuali disponibili non bastano per preparare un ripasso di tre domande su questo argomento.' });
+    }
+    const previewId = new mongoose.Types.ObjectId().toString();
+    req.session.assignmentDraft = { previewId, topic, origin, area, lesson, quiz: quiz.questions };
+    return res.json({ previewId, target: assignmentTarget, lesson: { ...lesson, sources: lesson.sources.map((source) => sourceLink(source, req)) }, quiz: quiz.questions });
+  } catch {
+    return res.status(422).json({ error: 'Non è stato possibile preparare il ripasso dai manuali disponibili. Prova con un altro argomento.' });
+  }
+};
+
+exports.publishAssignment = async (req, res) => {
+  const draft = req.session.assignmentDraft;
+  if (!draft || req.body?.previewId !== draft.previewId) return res.status(409).json({ error: 'Prepara di nuovo l’anteprima prima di assegnare il ripasso.' });
+  const { previewId, ...assignment } = draft;
+  const saved = await Assignment.findOneAndUpdate({ _id: previewId }, { $setOnInsert: { ...assignment, target: assignmentTarget, createdBy: owner(req), createdInSession: req.sessionID } }, { upsert: true, returnDocument: 'after', runValidators: true });
+  return res.status(201).json({ id: saved.id, title: saved.lesson.title, target: saved.target });
 };
 
 exports.ask = async (req, res) => {
@@ -222,7 +278,7 @@ exports.ask = async (req, res) => {
     saved = await Case.findOneAndUpdate({ _id: existing._id, owner: identity, ticket: { $exists: false }, resolvedAt: { $exists: false }, updatedAt: existing.updatedAt }, update, { returnDocument: 'after' });
     if (!saved) return res.status(409).json({ error: 'La richiesta è cambiata. Avvia una nuova domanda.' });
   } else {
-    saved = await Case.create({ owner: identity, ...values, draft, manualGaps: manualGap ? [message] : [] });
+    saved = await Case.create({ owner: identity, sessionId: req.sessionID, ...values, draft, manualGaps: manualGap ? [message] : [] });
   }
   return res.json({ ...result, sources, quizTopic, caseId: saved.id });
 };
@@ -264,23 +320,28 @@ exports.ticket = async (req, res) => {
 const publicQuestion = ({ question, options }) => ({ question, options });
 
 exports.startQuiz = async (req, res) => {
-  const topic = trainingTopic(text(req.body?.topic, 100)) || demo.topic;
+  let topic = trainingTopic(text(req.body?.topic, 100)) || demo.topic;
+  const assignmentId = req.body?.assignmentId;
+  const identity = owner(req);
   let result;
-  try {
-    const { generateQuiz } = aiModule();
-    result = await generateQuiz({ topic: topic === demo.topic ? 'Rilascio CIE in Cityware' : topic, n: 3, area });
-    if (
-      !Array.isArray(result?.questions) ||
-      !result.questions.length ||
-      result.questions.length > 3 ||
-      result.questions.some((item) => !item?.question || !Array.isArray(item.options) || item.options.length < 2 || !Number.isInteger(item.correctIndex) || !item.options[item.correctIndex] || !item.source?.file)
-    ) {
-      throw new Error('Quiz non valido');
+  if (assignmentId) {
+    const assignment = validId(assignmentId) ? await Assignment.findById(assignmentId).lean() : null;
+    if (!assignment) return res.status(404).json({ error: 'Ripasso non disponibile.' });
+    if (assignment.completions.some((entry) => entry.owner === identity)) return res.status(409).json({ error: 'Hai già completato questo ripasso.' });
+    ({ topic } = assignment);
+    result = { questions: assignment.quiz };
+  } else {
+    try {
+      const { generateQuiz } = aiModule();
+      result = await generateQuiz({ topic: topic === demo.topic ? 'Rilascio CIE in Cityware' : topic, n: 3, area });
+    } catch {
+      return res.status(503).json({ error: 'Il quiz è momentaneamente indisponibile. Riprova tra poco.' });
     }
-  } catch {
+  }
+  if (!Array.isArray(result?.questions) || !result.questions.length || result.questions.length > 3 || !result.questions.every(validQuestion)) {
     return res.status(503).json({ error: 'Il quiz è momentaneamente indisponibile. Riprova tra poco.' });
   }
-  const quiz = await Quiz.create({ owner: owner(req), topic, questions: result.questions });
+  const quiz = await Quiz.create({ owner: identity, sessionId: req.sessionID, assignment: assignmentId || undefined, topic, questions: result.questions });
   return res.status(201).json({ id: quiz.id, topic: quiz.topic, question: publicQuestion(quiz.questions[0]), total: quiz.questions.length });
 };
 
@@ -300,6 +361,11 @@ exports.answerQuiz = async (req, res) => {
     if (!next) update.$set = { completedAt: new Date() };
     recorded = await Quiz.findOneAndUpdate({ _id: id, owner: identity, answers: { $size: index } }, update, { returnDocument: 'after' }).lean();
     if (!recorded) recorded = await Quiz.findOne({ _id: id, owner: identity }).lean();
+  }
+  if (!next && recorded.assignment) {
+    const completion = { owner: identity, sessionId: recorded.sessionId || req.sessionID, score: recorded.score, total: quiz.questions.length, completedAt: recorded.completedAt };
+    await Assignment.updateOne({ _id: recorded.assignment, 'completions.owner': { $ne: identity } }, { $push: { completions: completion } });
+    req.session.completedReview = quiz.topic;
   }
   return res.json({
     correct: recorded.answers[index] === question.correctIndex,

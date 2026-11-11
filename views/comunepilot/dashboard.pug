@@ -15,6 +15,30 @@ block content
           = metric.detail
   p.cp-dashboard-note Dati della sessione e dati simulati inclusi negli indicatori.
 
+  section#assignment-preview.cp-card.cp-document(aria-labelledby='preview-title', hidden)
+    h2#preview-title Anteprima del ripasso
+    p#assignment-status(role='status')
+    p#assignment-error.cp-form-error(role='alert', hidden)
+    #assignment-content
+    .cp-study-actions
+      button#assignment-publish.cp-btn.cp-btn-primary(type='button', hidden) Assegna agli operatori
+      button#assignment-close.cp-btn.cp-btn-outline(type='button') Chiudi
+
+  section#ripassi.cp-card.cp-document(aria-labelledby='assignments-title')
+    h2#assignments-title Ripassi assegnati
+    p#assignment-confirmation(role='status', hidden)
+    #assignment-list
+      if !assignments.length
+        p#assignments-empty Nessun ripasso assegnato.
+      each item in assignments
+        .cp-topic-row
+          strong= item.title
+          span= item.target
+          span= item.count === 1 ? '1 completamento' : item.count + ' completamenti'
+          if item.percent !== null
+            span= 'Competenza media · ' + item.percent + '%'
+            progress.cp-progress(value=item.percent, max='100', aria-label=item.topic)
+
   .cp-dashboard-grid
     section#coda.cp-card.cp-document.cp-queue(aria-labelledby='coda-title')
       h2#coda-title Coda ticket intelligente
@@ -77,6 +101,7 @@ block content
               progress.cp-progress(class=index === 0 ? 'cp-progress-warn' : '', value=item.count, max=requestedTopics[0].count, aria-label=item.label)
               if item.simulated
                 span.cp-sample-mark= item.session ? `${item.session} dalla sessione · ${item.simulated} simulati` : 'Dati simulati'
+              button.cp-btn.cp-btn-outline.cp-create-review(type='button', data-topic=item.label, data-origin='difficoltà') Crea ripasso
         if difficulty
           p
             strong Errore più frequente nei quiz
@@ -104,3 +129,7 @@ block content
                 span.cp-gap-count= gap.count
               if gap.simulated
                 span.cp-sample-mark= gap.session ? `${gap.session} dalla sessione · ${gap.simulated} simulati` : 'Dati simulati'
+              button.cp-btn.cp-btn-outline.cp-create-review(type='button', data-topic=gap.label, data-origin='lacuna') Crea ripasso
+
+block scripts
+  script(src='/js/comunepilot.js?v=' + getFileHash('/js/comunepilot.js'), defer)

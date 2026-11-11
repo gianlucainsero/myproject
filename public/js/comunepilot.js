@@ -329,11 +329,102 @@
     });
   }
 
+  function setupAssignments() {
+    const panel = document.querySelector('#assignment-preview');
+    const status = document.querySelector('#assignment-status');
+    const content = document.querySelector('#assignment-content');
+    const errorBox = document.querySelector('#assignment-error');
+    const publish = document.querySelector('#assignment-publish');
+    const close = document.querySelector('#assignment-close');
+    const triggers = document.querySelectorAll('.cp-create-review');
+    let trigger;
+    let draft;
+
+    function setPending(pending, label = '') {
+      status.textContent = label;
+      panel.setAttribute('aria-busy', String(pending));
+      close.disabled = pending;
+      publish.disabled = pending;
+      triggers.forEach((control) => {
+        control.disabled = pending;
+      });
+    }
+
+    function renderPreview({ lesson, quiz, target }) {
+      content.append(element('h3', '', lesson.title), element('p', '', lesson.intro), element('p', '', target));
+      const points = element('ul');
+      lesson.keyPoints.forEach((point) => points.append(responseText('li', '', point)));
+      content.append(points);
+      if (lesson.steps.length) content.append(renderSteps(lesson.steps, 1));
+      content.append(sourceList(lesson.sources), element('h3', '', 'Quiz di ripasso'));
+      const questions = element('ol', 'cp-assignment-questions');
+      quiz.forEach((question) => {
+        const item = element('li', '', question.question);
+        const options = element('ul');
+        question.options.forEach((option, index) => options.append(element('li', index === question.correctIndex ? 'fw-bold' : '', option)));
+        item.append(options);
+        questions.append(item);
+      });
+      content.append(questions);
+    }
+
+    triggers.forEach((control) =>
+      control.addEventListener('click', async () => {
+        trigger = control;
+        draft = null;
+        panel.hidden = false;
+        publish.hidden = true;
+        content.replaceChildren();
+        showError(errorBox);
+        panel.scrollIntoView({ block: 'start' });
+        setPending(true, 'Sto preparando il ripasso dai manuali…');
+        try {
+          draft = await request('/api/assignments/preview', { topic: control.dataset.topic, origin: control.dataset.origin });
+          renderPreview(draft);
+          publish.hidden = false;
+        } catch (error) {
+          showError(errorBox, error);
+        } finally {
+          setPending(false);
+          (draft ? publish : close).focus({ preventScroll: true });
+        }
+      }),
+    );
+
+    close.addEventListener('click', () => {
+      panel.hidden = true;
+      trigger.focus();
+    });
+
+    publish.addEventListener('click', async () => {
+      setPending(true, 'Sto assegnando il ripasso…');
+      showError(errorBox);
+      try {
+        const saved = await request('/api/assignments', { previewId: draft.previewId });
+        const confirmation = document.querySelector('#assignment-confirmation');
+        const entry = element('div', 'cp-topic-row');
+        entry.append(element('strong', '', saved.title), element('span', '', saved.target), element('span', '', '0 completamenti'));
+        document.querySelector('#assignments-empty')?.remove();
+        document.querySelector('#assignment-list').prepend(entry);
+        confirmation.hidden = false;
+        confirmation.textContent = `Ripasso assegnato a ${saved.target}`;
+        confirmation.tabIndex = -1;
+        panel.hidden = true;
+        confirmation.focus();
+      } catch (error) {
+        showError(errorBox, error);
+      } finally {
+        setPending(false);
+      }
+    });
+  }
+
   function startQuiz() {
     const quiz = document.querySelector('#quiz');
     const start = document.querySelector('#start-quiz');
     const body = document.querySelector('#quiz-body');
     const errorBox = document.querySelector('#quiz-error');
+    const statusBox = document.querySelector('#quiz-status');
     let quizId;
     let total;
 
@@ -368,6 +459,8 @@
         if (submit.disabled) return;
         submit.disabled = true;
         showError(errorBox);
+        statusBox.hidden = false;
+        statusBox.textContent = 'Sto verificando la risposta…';
         try {
           const answer = Number(new FormData(form).get('answer'));
           const result = await request('/api/quiz/attempt', { id: quizId, index, answer });
@@ -382,6 +475,7 @@
           const advance = button(result.next ? 'Prossima domanda' : 'Vedi risultato', 'cp-btn cp-btn-primary');
           advance.addEventListener('click', () => {
             if (result.next) renderQuestion(result.next, index + 1);
+            else if (quiz.dataset.assignment) window.location.assign('/');
             else {
               const title = element('h2', '', `${result.score} su ${total} risposte corrette`);
               title.tabIndex = -1;
@@ -396,6 +490,8 @@
         } catch (error) {
           showError(errorBox, error);
           submit.disabled = false;
+        } finally {
+          statusBox.hidden = true;
         }
       });
     }
@@ -403,18 +499,23 @@
     start.addEventListener('click', async () => {
       start.disabled = true;
       showError(errorBox);
+      statusBox.hidden = false;
+      statusBox.textContent = 'Sto preparando il quiz…';
       try {
-        const result = await request('/api/quiz', { topic: quiz.dataset.topic });
+        const result = await request('/api/quiz', { topic: quiz.dataset.topic, assignmentId: quiz.dataset.assignment });
         ({ id: quizId, total } = result);
         start.closest('.cp-quiz-start').hidden = true;
         renderQuestion(result.question, 0);
       } catch (error) {
         showError(errorBox, error);
         start.disabled = false;
+      } finally {
+        statusBox.hidden = true;
       }
     });
   }
 
   if (document.querySelector('#chat-form')) startChat();
   if (document.querySelector('#quiz')) startQuiz();
+  if (document.querySelector('#assignment-preview')) setupAssignments();
 })();

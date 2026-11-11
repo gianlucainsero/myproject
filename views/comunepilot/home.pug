@@ -7,6 +7,20 @@ block content
     h1 Buongiorno
     p Servizi Demografici · Comune di Vallechiara
 
+  if completedReview
+    p.cp-feedback.cp-feedback-success(role='status') Ripasso completato. I tuoi progressi sono stati registrati.
+
+  if assignment
+    section.cp-review-banner.cp-card(aria-labelledby='assignment-title')
+      .cp-feature-icon
+        i.fa-solid.fa-list-check(aria-hidden='true')
+      div
+        h2#assignment-title Nuovo ripasso da Palitalsoft
+        p= assignment.lesson.title
+      a.cp-btn.cp-btn-white(href='/ripasso/' + assignment._id)
+        | Inizia
+        i.fa-solid.fa-arrow-right(aria-hidden='true')
+
   section.cp-review-banner.cp-card(aria-labelledby='ripassi-title')
     .cp-feature-icon
       i.fa-solid.fa-play(aria-hidden='true')
