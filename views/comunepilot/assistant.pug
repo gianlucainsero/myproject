@@ -11,7 +11,7 @@ block content
         .cp-feature-icon
           i.fa-solid.fa-comment-dots(aria-hidden='true')
         div
-          h2 Assistente ComunePilot
+          h2= `Assistente ${productName}`
           p= assistantMode
         button#new-case.cp-btn.cp-btn-outline(type='button', hidden) Nuova domanda
       #messages.cp-messages(role='log', aria-live='polite', aria-relevant='additions text')

@@ -4,7 +4,7 @@ html(lang='it')
     meta(charset='utf-8')
     meta(name='viewport', content='width=device-width, initial-scale=1')
     meta(name='csrf-token', content=_csrf)
-    title= `${title} | ComunePilot`
+    title= `${title} | ${productName}`
     link(rel='icon', href='/palitalsoft.png', type='image/png')
     link(rel='stylesheet', href='/css/main.css?v=' + getFileHash('/css/main.css'))
     link(rel='stylesheet', href='/css/comunepilot.css?v=' + getFileHash('/css/comunepilot.css'))
@@ -16,10 +16,10 @@ html(lang='it')
         i.fa-solid(aria-hidden='true', class=icon)
         span= label
     header.cp-header
-      a.cp-brand(href='/', aria-label='ComunePilot, pagina iniziale')
+      a.cp-brand(href='/', aria-label=`${productName}, pagina iniziale`)
         img(src='/palitalsoft.png', width='160', height='22', alt='Palitalsoft')
         span.cp-brand-divider(aria-hidden='true')
-        span ComunePilot
+        span= productName
       .cp-header-actions
         span.cp-demo-badge
           span(aria-hidden='true')
