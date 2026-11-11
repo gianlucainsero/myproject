@@ -73,6 +73,7 @@
     const labels = ['Risposta diretta', 'Guida passo passo', 'Richiesta di assistenza'];
     let caseId = null;
     let actions = null;
+    let activeChoices = null;
     let waiting = false;
 
     const scroll = () => messages.scrollTo({ top: messages.scrollHeight });
@@ -81,11 +82,15 @@
       waiting = value;
       send.disabled = value;
       newCase.disabled = value;
+      activeChoices?.querySelectorAll('button').forEach((control) => {
+        control.disabled = value;
+      });
     }
 
     function clear() {
       caseId = null;
       actions = null;
+      activeChoices = null;
       messages.replaceChildren(empty);
       newCase.hidden = true;
       form.hidden = false;
@@ -168,12 +173,26 @@
       return controls;
     }
 
+    function renderChoices(choices) {
+      if (!Array.isArray(choices)) return null;
+      const controls = element('div', 'cp-chat-actions');
+      controls.setAttribute('role', 'group');
+      controls.setAttribute('aria-label', 'Risposte suggerite');
+      for (const choice of choices) {
+        if (typeof choice !== 'string' || !choice.trim()) continue;
+        const control = button(choice);
+        control.addEventListener('click', () => submit(choice));
+        controls.append(control);
+      }
+      return controls.childElementCount ? controls : null;
+    }
+
     async function submit(message, escalate = false) {
       if (waiting || !message) return;
       busy(true);
       showError(errorBox);
       const prompt = element('div', 'cp-message cp-message-user', message);
-      const pending = element('p', 'cp-chat-pending', 'Consultazione dei manuali…');
+      const pending = element('p', 'cp-chat-pending', 'Sto cercando nei manuali…');
       if (empty.isConnected) empty.hidden = true;
       messages.append(prompt, pending);
       scroll();
@@ -182,6 +201,8 @@
         ({ caseId } = result);
         newCase.hidden = false;
         actions?.remove();
+        activeChoices?.remove();
+        activeChoices = null;
         const reply = element('div', 'cp-message cp-message-assistant');
         reply.append(element('span', `cp-level-tag level-${result.level}`, `Livello ${result.level} · ${labels[result.level - 1]}`));
         if (result.mock || result.fallback) reply.append(element('p', 'cp-chat-pending', 'Modalità di riserva'));
@@ -191,7 +212,11 @@
           result.steps.forEach((step) => list.append(responseText('li', '', step)));
           reply.append(list);
         }
-        if (result.question) reply.append(element('p', 'cp-question', result.question));
+        if (result.question) {
+          reply.append(element('p', 'cp-question', result.question));
+          activeChoices = renderChoices(result.choices);
+          if (activeChoices) reply.append(activeChoices);
+        }
         reply.append(sourceList(result.sources || []));
         actions = renderActions(result, message);
         reply.append(actions);
