@@ -7,9 +7,9 @@ const envFile = path.join(__dirname, '..', '.env.example');
 if (fs.existsSync(envFile)) process.loadEnvFile(envFile);
 else console.log(`ATTENZIONE: non trovo ${envFile}`);
 const key = process.env.GEMINI_API_KEY || '';
-console.log(`GEMINI_API_KEY: ${key ? `trovata (${key.slice(0, 4)}…, ${key.length} caratteri)` : 'NON trovata: aggiungi GEMINI_API_KEY=... in .env.example'}`);
+console.log(key ? 'GEMINI_API_KEY: trovata' : 'GEMINI_API_KEY: non trovata');
 if (process.env.AI_MOCK === '1') console.log('AI_MOCK=1: modalità di riserva forzata');
-const { askAssistant, generateQuiz, isAiConfigured } = require('../ai');
+const { askAssistant, generateQuiz, generateLesson, isAiConfigured } = require('../ai');
 
 const scenarios = [
   "Come rilascio una carta d'identità?",
@@ -27,4 +27,8 @@ const scenarios = [
   }
   const q = await generateQuiz({ topic: "Carte d'identità", n: 3 });
   console.log('### Quiz'); console.log(JSON.stringify(q, null, 2));
+  const started = Date.now();
+  const lesson = await generateLesson({ topic: 'Apertura operazioni elettorali' });
+  console.log('### Microlezione [' + (Date.now() - started) + ' ms]');
+  console.log(JSON.stringify(lesson, null, 2));
 })().catch((e) => { console.error(e); process.exit(1); });

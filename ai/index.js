@@ -1,5 +1,5 @@
 // Modulo IA: assistente a 3 livelli e generazione quiz, sui manuali indicizzati.
-// API pubblica (vedi AGENTS.md): askAssistant, generateQuiz, search, isAiConfigured
+// API pubblica (vedi AGENTS.md): askAssistant, generateQuiz, generateLesson, search, isAiConfigured
 const { search, listDocs, loadIndex } = require('./search');
 const { generateJSON, isConfigured } = require('./llm');
 const P = require('./prompts');
@@ -104,17 +104,63 @@ async function generateQuiz({ topic, n = 3, area = DEFAULT_AREA }) {
       console.error('[ai] generateQuiz: errore modello, uso il quiz di riserva →', err.message);
     }
   }
-  if (!questions || !questions.length) questions = mockQuiz(topic, chunks, n);
+  const configured = isConfigured();
+  const fallback = !questions || questions.length < n;
+  const relatedSections = fallback
+    ? docChunks(area, chunks[0].file).map((chunk) => ({ ...chunk, title: chunks[0].title, file: chunks[0].file, module: chunks[0].module }))
+    : [];
+  const questionSources = [...chunks, ...relatedSections];
+  if (fallback) questions = mockQuiz(topic, questionSources, n, area);
 
-  const byId = new Map(chunks.map((c) => [c.id, c]));
+  const byId = new Map(questionSources.map((c) => [c.id, c]));
   return {
     topic,
     questions: questions.map((q) => {
       const c = byId.get(q.sourceId) || chunks[0];
       const { sourceId, ...rest } = shuffleOptions(q);
-      return { ...rest, source: { title: c.title, file: c.file } };
+      return { ...rest, source: toSources([c], [c.id])[0] };
     }),
-    mock: !isConfigured() || undefined,
+    mock: !configured || undefined,
+    fallback: (configured && fallback) || undefined,
+  };
+}
+
+async function generateLesson({ topic, area = DEFAULT_AREA }) {
+  if (!topic?.trim()) throw new Error('Argomento mancante');
+  const chunks = search(topic, { area, k: 6, maxPerDoc: 2 });
+  if (!chunks.length) throw new Error('Nessun manuale trovato per questo argomento');
+
+  const configured = isConfigured();
+  if (configured) {
+    try {
+      const { title, intro, keyPoints, steps, sourceIds } = await generateJSON({
+        system: P.lessonSystem(area),
+        messages: [{ role: 'user', content: "Argomento: " + topic + "\n\nESTRATTI DEI MANUALI:\n" + P.formatContext(chunks) }],
+        schema: P.lessonSchema,
+        temperature: 0.2,
+      });
+      const sources = toSources(chunks, sourceIds);
+      if (title?.trim() && intro?.trim() && keyPoints?.length >= 3 && keyPoints.length <= 5 && Array.isArray(steps) && sources.length) {
+        return { title, intro, keyPoints, steps, sources };
+      }
+    } catch (err) {
+      console.error('[ai] generateLesson: errore modello, uso la lezione di riserva →', err.message);
+    }
+  }
+
+  const primary = chunks[0];
+  const sections = docChunks(area, primary.file);
+  const steps = stepsFromDoc(sections);
+  const points = sections.map((section) => firstSentence(section.text));
+  const keyPoints = [...new Set([...points, ...chunks.map((chunk) => firstSentence(chunk.text))])].filter(Boolean).slice(0, 5);
+  const sources = toSources(chunks, chunks.map((chunk) => chunk.id));
+  return {
+    title: topic,
+    intro: "Ripassa la procedura descritta nel manuale «" + primary.title + "».",
+    keyPoints,
+    steps,
+    sources,
+    ...(configured ? { fallback: true } : { mock: true }),
   };
 }
 
@@ -223,13 +269,13 @@ function mockAssistant(message, chunks, area) {
   };
 }
 
-function mockQuiz(topic, chunks, n) {
-  const titles = listDocs().map((d) => d.title);
-  const menuChunks = chunks.filter((c) => /→/.test(c.text));
-  return (menuChunks.length ? menuChunks : chunks).slice(0, n).map((c) => {
+function mockQuiz(topic, chunks, n, area) {
+  const titles = [...new Set(listDocs(area).map((d) => d.title))];
+  const questions = new Map();
+  for (const c of chunks) {
     const menu = (c.text.match(/\*\*([^*]*→[^*]*)\*\*/) || [])[1];
     const wrong = titles.filter((t) => t !== c.title).sort(() => Math.random() - 0.5).slice(0, 3);
-    return menu
+    const question = menu
       ? {
         question: `Dove trovi la funzione "${c.title}"?`,
         options: [menu, ...wrong.map((t) => `Servizi demografici → ${t}`)],
@@ -244,7 +290,10 @@ function mockQuiz(topic, chunks, n) {
         explanation: `È spiegato nel manuale "${c.title}".`,
         sourceId: c.id,
       };
-  });
+    if (!questions.has(question.question)) questions.set(question.question, question);
+    if (questions.size === n) break;
+  }
+  return [...questions.values()].slice(0, n);
 }
 
-module.exports = { askAssistant, generateQuiz, search, isAiConfigured: isConfigured };
+module.exports = { askAssistant, generateQuiz, generateLesson, search, isAiConfigured: isConfigured };

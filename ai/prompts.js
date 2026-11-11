@@ -103,8 +103,25 @@ const quizSchema = {
   required: ['questions'],
 };
 
+function lessonSystem(area) {
+  return `Crea una microlezione pratica in italiano semplice per gli operatori di Cityware Online, area ${MODULE_NAMES[area] || area}.
+Usa solo gli estratti numerati forniti. Scrivi un titolo, un'introduzione di al massimo due frasi, da 3 a 5 punti chiave e i passi nel software in ordine. Evidenzia menu e pulsanti in **grassetto**. Cita in sourceIds gli ID degli estratti utilizzati. Ometti i passi che gli estratti non documentano.`;
+}
+
+const lessonSchema = {
+  type: 'OBJECT',
+  properties: {
+    title: { type: 'STRING' },
+    intro: { type: 'STRING' },
+    keyPoints: { type: 'ARRAY', minItems: 3, maxItems: 5, items: { type: 'STRING' } },
+    steps: { type: 'ARRAY', items: { type: 'STRING' } },
+    sourceIds: { type: 'ARRAY', minItems: 1, items: { type: 'INTEGER' } },
+  },
+  required: ['title', 'intro', 'keyPoints', 'steps', 'sourceIds'],
+};
+
 function formatContext(chunks) {
   return chunks.map((c) => `[ID ${c.id}] ${c.title}${c.heading ? ` – ${c.heading}` : ''}\n${c.text}`).join('\n\n---\n\n');
 }
 
-module.exports = { MODULE_NAMES, assistantSystem, assistantSchema, quizSystem, quizSchema, formatContext };
+module.exports = { MODULE_NAMES, assistantSystem, assistantSchema, quizSystem, quizSchema, lessonSystem, lessonSchema, formatContext };
