@@ -1,3 +1,15 @@
+# ComunePilot
+
+Prototipo per la formazione e l’assistenza degli operatori comunali, realizzato per l’hackathon Palitalsoft × Unicam.
+
+Con MongoDB in esecuzione e le dipendenze installate, avvia `npm start` e apri [localhost:8080](http://localhost:8080). Dalla home puoi aprire la microlezione CIE, fare il quiz, provare i tre percorsi in `/assistente` e consultare la coda in `/palitalsoft`. Le attività demo sono visibili nel browser che le ha create e i ticket sono simulati.
+
+L’assistente usa risposte dimostrative locali. Dopo aver collegato il modulo del team, imposta `COMUNEPILOT_LIVE_AI=true` nell’ambiente del server per usare le funzioni `askAssistant` e `generateQuiz` da `ai/index.js`. Tieni le chiavi nel tuo ambiente locale.
+
+Strumenti AI usati per questa versione: Codex per lo sviluppo e generazione di immagini OpenAI per la foto illustrativa del municipio. Il logo Palitalsoft proviene dal materiale dell’hackathon. Il nome del modello dell’assistente verrà indicato quando sarà integrato il modulo del team.
+
+---
+
 ![](https://lh4.googleusercontent.com/-PVw-ZUM9vV8/UuWeH51os0I/AAAAAAAAD6M/0Ikg7viJftQ/w1286-h566-no/hackathon-starter-logo.jpg)
 Hackathon Starter
 =======================

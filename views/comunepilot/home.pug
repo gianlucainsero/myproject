@@ -1,0 +1,66 @@
+extends layout
+
+block content
+  section.cp-hero(aria-labelledby='titolo-home')
+    .cp-hero-photo(aria-hidden='true')
+    .cp-hero-content
+      span.cp-hero-label
+        i.fa-solid.fa-landmark(aria-hidden='true')
+        | Servizi Demografici
+      h1#titolo-home Il mio percorso
+      p Impara le procedure di Cityware Online, verifica le tue competenze e chiedi aiuto quando ti serve.
+      a.cp-btn.cp-btn-white(href='/formazione/cie')
+        = latest ? 'Ripassa la lezione' : 'Inizia la lezione'
+        i.fa-solid.fa-arrow-right(aria-hidden='true')
+  .cp-home-grid
+    section(aria-labelledby='lezioni-title')
+      .cp-section-heading
+        h2#lezioni-title Formazione
+        span Anagrafe
+      article.cp-card.cp-lesson-card
+        .cp-lesson-symbol
+          i.fa-regular.fa-id-card(aria-hidden='true')
+        .cp-lesson-card-content
+          h3 Rilascio CIE in Cityware
+          p Trova la funzione e verifica il tipo di CIE e la modalità di pagamento.
+          .cp-meta
+            span
+              i.fa-regular.fa-clock(aria-hidden='true')
+              | 3 min
+            span
+              i.fa-solid.fa-play(aria-hidden='true')
+              | Video
+            span
+              i.fa-solid.fa-list-check(aria-hidden='true')
+              | Mini-quiz
+          a.cp-text-link(href='/formazione/cie')
+            | Apri la lezione
+            i.fa-solid.fa-arrow-right(aria-hidden='true')
+    section(aria-labelledby='progress-title')
+      .cp-section-heading
+        h2#progress-title I miei progressi
+      article.cp-card.cp-progress-card
+        .cp-progress-top
+          .cp-feature-icon
+            i.fa-solid.fa-chart-simple(aria-hidden='true')
+          div
+            h3 Carte d’identità
+            p= latest ? 'Ultimo mini-quiz' : 'In attesa della prima verifica'
+        if latest
+          .cp-progress-score
+            strong= `${latest.score}/${latest.questions.length}`
+            span risposte corrette
+          progress.cp-progress(value=latest.score, max=latest.questions.length, aria-label='Ultimo risultato del mini-quiz')
+          if latest.score < latest.questions.length
+            a.cp-text-link(href='/formazione/cie') Ripassa i passaggi della CIE
+        else
+          p.cp-progress-empty Il risultato apparirà qui dopo il tuo primo mini-quiz.
+  section.cp-card.cp-help(aria-labelledby='aiuto-title')
+    .cp-feature-icon
+      i.fa-regular.fa-comments(aria-hidden='true')
+    div
+      h2#aiuto-title Hai un dubbio mentre lavori?
+      p Cerca nei manuali o segui una procedura guidata.
+    a.cp-btn.cp-btn-outline(href='/assistente')
+      | Apri l’assistente
+      i.fa-solid.fa-arrow-right(aria-hidden='true')

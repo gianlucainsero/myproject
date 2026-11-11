@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  a.cp-back(href='/formazione/cie')
+    i.fa-solid.fa-arrow-left(aria-hidden='true')
+    | Torna alla lezione
+  header.cp-page-intro
+    span.cp-eyebrow Verifica delle competenze
+    h1 Mini-quiz
+    p= topic
+  section#quiz.cp-card.cp-document.cp-quiz(data-topic=topic, aria-label='Mini-quiz')
+    .cp-quiz-start
+      h2 Pronto per la verifica?
+      p Dopo ogni risposta vedrai una spiegazione e il riferimento al manuale.
+      if latest && latest.topic === topic
+        p= `Ultimo risultato: ${latest.score} su ${latest.questions.length}`
+      button#start-quiz.cp-btn.cp-btn-primary(type='button') Inizia il quiz
+    #quiz-body
+    p#quiz-error.cp-form-error(role='alert', hidden)
+
+block scripts
+  script(src='/js/comunepilot.js?v=' + getFileHash('/js/comunepilot.js'), defer)

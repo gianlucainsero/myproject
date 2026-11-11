@@ -1,0 +1,89 @@
+extends layout
+
+block content
+  header.cp-page-intro
+    span.cp-eyebrow Servizi Demografici
+    h1 Assistente
+    p Chiedi una procedura di Cityware Online o descrivi un problema operativo.
+  .cp-detail-grid.cp-assistant-grid
+    section.cp-card.cp-chat(aria-label='Conversazione con l’assistente')
+      header.cp-chat-header
+        .cp-feature-icon
+          i.fa-solid.fa-comment-dots(aria-hidden='true')
+        div
+          h2 Assistente ComunePilot
+          p= liveAI ? 'Risposte dai manuali' : 'Risposte dimostrative dai manuali'
+        button#new-case.cp-btn.cp-btn-outline(type='button', hidden) Nuova domanda
+      #messages.cp-messages(role='log', aria-live='polite', aria-relevant='additions text')
+        #empty-chat.cp-empty-chat
+          h3 Come posso aiutarti?
+          p Prova a partire da una di queste domande.
+          .cp-prompts
+            button(type='button', data-prompt='Come rilascio una carta d’identità?') Come rilascio una carta d’identità?
+            button(type='button', data-prompt='Domenica ci sono le elezioni e non so da dove partire.') Domenica ci sono le elezioni e non so da dove partire.
+            button(type='button', data-prompt='Stampa Liste Sezionali dà errore con il testo corretto, anche a un collega. L’ufficio è bloccato e la consegna è oggi.') La stampa delle liste sezionali è bloccata.
+      p#chat-error.cp-form-error(role='alert', hidden)
+      form#chat-form.cp-composer
+        label.visually-hidden(for='chat-input') Scrivi una domanda
+        input#chat-input(name='message', placeholder='Scrivi una domanda…', required, maxlength='1500', autocomplete='off')
+        button.cp-btn.cp-btn-primary(type='submit')
+          | Invia
+          i.fa-solid.fa-arrow-up(aria-hidden='true')
+      p.cp-chat-note Usa dati di esempio e ometti i dati personali.
+    aside.cp-card.cp-document.cp-chat-aside
+      h2 Come ti aiuta
+      ol.cp-level-list
+        li
+          span.cp-level-number 1
+          div
+            strong Risposta diretta
+            p Spiegazione breve e riferimento al manuale.
+        li
+          span.cp-level-number 2
+          div
+            strong Guida passo passo
+            p Chiarimenti e istruzioni per la tua procedura.
+        li
+          span.cp-level-number 3
+          div
+            strong Richiesta di assistenza
+            p Bozza da rivedere prima di aggiungerla alla coda simulata.
+  template#ticket-template
+    form.cp-ticket-form
+      h3 Bozza di ticket
+      p Controlla i dettagli prima di inserirla nella coda simulata.
+      label
+        | Oggetto
+        input(name='summary', required, maxlength='140')
+      label
+        | Descrizione
+        textarea(name='description', required, maxlength='2500', rows='3')
+      label
+        | Tentativi già fatti
+        textarea(name='stepsTried', maxlength='1200', rows='2')
+      .cp-fields
+        label
+          | Tipo
+          select(name='type', required)
+            option(value='bug') Possibile anomalia
+            option(value='configurazione') Configurazione
+            option(value='formazione') Formazione
+            option(value='altro') Supporto operativo
+        label
+          | Impatto
+          select(name='impact', required)
+            option(value='limitato') Limitato
+            option(value='operatore') Singolo operatore
+            option(value='ufficio') Ufficio bloccato
+        label
+          | Urgenza
+          select(name='urgency', required)
+            option(value='nessuna') Nessuna scadenza
+            option(value='presto') A breve
+            option(value='oggi') Entro oggi
+      p.cp-priority(aria-live='polite')
+      button.cp-btn.cp-btn-primary(type='submit') Aggiungi alla coda simulata
+      p.cp-form-error(role='alert', hidden)
+
+block scripts
+  script(src='/js/comunepilot.js?v=' + getFileHash('/js/comunepilot.js'), defer)

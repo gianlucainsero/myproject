@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  a.cp-back(href='/assistente')
+    i.fa-solid.fa-arrow-left(aria-hidden='true')
+    | Torna all’assistente
+  header.cp-page-intro
+    span.cp-eyebrow Fonte · Servizi Demografici
+    h1= source.title
+    p= source.file
+  article.cp-card.cp-document.cp-source-document
+    h2= source.section
+    p= source.text
+    p.cp-source-note Sintesi del passaggio del manuale Palitalsoft usato nella demo.

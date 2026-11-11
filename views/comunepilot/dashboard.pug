@@ -1,0 +1,91 @@
+extends layout
+
+block content
+  header.cp-page-intro
+    span.cp-eyebrow Spazio formatore
+    h1 Cruscotto Palitalsoft
+    p Servizi Demografici · Attività della sessione demo
+  section.cp-metrics(aria-label='Indicatori della sessione')
+    article.cp-card.cp-metric
+      i.fa-solid.fa-circle-check(aria-hidden='true')
+      strong= resolved
+      span Richieste risolte senza ticket
+    article.cp-card.cp-metric
+      i.fa-solid.fa-comment-dots(aria-hidden='true')
+      strong= directRate === null ? '—' : `${directRate}%`
+      span Esito delle risposte dirette
+    article.cp-card.cp-metric
+      i.fa-solid.fa-list-check(aria-hidden='true')
+      strong= quizAverage === null ? '—' : `${quizAverage}%`
+      span Risultato medio dei quiz
+  section#coda.cp-card.cp-document.cp-queue(aria-labelledby='coda-title')
+    .cp-queue-header
+      div
+        h2#coda-title Coda simulata
+        p Richieste ordinate per priorità, dalla più alta.
+      form.cp-filter(action='/palitalsoft#coda', method='get')
+        label(for='tipo') Tipo di richiesta
+        select#tipo(name='tipo')
+          option(value='') Tutti i tipi
+          each label, value in ticketTypes
+            option(value=value, selected=filter === value)= label
+        button.cp-btn.cp-btn-outline(type='submit') Filtra
+    if tickets.length
+      .table-responsive
+        table.cp-table
+          thead
+            tr
+              th(scope='col') Richiesta
+              th(scope='col') Tipo
+              th(scope='col') Urgenza
+              th(scope='col') Priorità
+          tbody
+            each ticket in tickets
+              tr
+                td
+                  if ticket.example
+                    strong= ticket.summary
+                    span.cp-table-note Dato di esempio
+                  else
+                    details
+                      summary= ticket.summary
+                      p= ticket.description
+                      if ticket.stepsTried.length
+                        ul
+                          each step in ticket.stepsTried
+                            li= step
+                    span.cp-table-note Aperto · #{ String(ticket._id).slice(-6).toUpperCase() }
+                td= ticketTypes[ticket.type]
+                td= ticket.urgency
+                td
+                  span.cp-priority-tag(class=`priority-${ticket.priority}`)= ticket.priority
+    else
+      p Nessun ticket per il tipo selezionato.
+  .cp-detail-grid.cp-dashboard-bottom
+    section.cp-card.cp-document(aria-labelledby='quiz-result-title')
+      h2#quiz-result-title Risultati per argomento
+      if topics.length
+        each result in topics
+          .cp-topic-row
+            strong= result.topic
+            span= `${result.score} su ${result.questions} risposte corrette`
+            progress.cp-progress(value=result.percent, max='100', aria-label=result.topic)
+      else
+        p I risultati appariranno dopo il primo quiz completato in questa sessione.
+    section.cp-card.cp-document.cp-training-note(aria-labelledby='training-note-title')
+      if difficulty
+        span.cp-eyebrow Difficoltà emersa nel quiz
+        h2#training-note-title= difficulty.topic
+        p
+          strong= difficulty.question
+          |
+          | · #{ difficulty.count } #{ difficulty.count === 1 ? 'errore' : 'errori' } nella sessione.
+        p Aggiungi un esempio pratico che chiarisca questo passaggio e verifica i prossimi risultati.
+      else
+        span.cp-eyebrow Scenario di esempio
+        h2#training-note-title Migliora la microlezione CIE
+        p Aggiungi un esempio pratico sul tipo di CIE e sulla modalità di pagamento. Verifica nei prossimi quiz se il passaggio è più chiaro.
+      if !difficulty || difficulty.topic === 'Carte d’identità'
+        a.cp-text-link(href='/formazione/cie')
+          | Apri la lezione
+          i.fa-solid.fa-arrow-right(aria-hidden='true')

@@ -1,0 +1,35 @@
+extends layout
+
+block content
+  a.cp-back(href='/')
+    i.fa-solid.fa-arrow-left(aria-hidden='true')
+    | Il mio percorso
+  header.cp-page-intro
+    span.cp-eyebrow Anagrafe · Microlezione
+    h1 Rilascio CIE in Cityware
+    p Trova la funzione e prepara la contabilizzazione dei diritti in Cityware Online.
+  .cp-detail-grid
+    article.cp-card.cp-document
+      h2 Video dimostrativo
+      video.cp-video(controls, playsinline, preload='metadata', poster='/cie-poster.webp', aria-label='Rilascio CIE in Cityware, video di 21 secondi con testo a schermo')
+        source(src='/cie-microlezione.mp4', type='video/mp4')
+        a(href='/cie-microlezione.mp4') Apri il video dimostrativo
+      h2 Dove trovare la funzione
+      p.cp-breadcrumb-path Servizi Demografici → Anagrafe → Variazioni → Gestione Carte d’identità
+      h2 Cosa controllare
+      ol.cp-steps
+        li Seleziona il documento nell’elenco e apri #[strong Rilascio CIE].
+        li Controlla il #[strong tipo di CIE] e la #[strong modalità di pagamento].
+        li Verifica i dati prima di confermare la prenotazione dell’emissione in Cityware.
+      a.cp-source(href=source.url)
+        i.fa-regular.fa-file-lines(aria-hidden='true')
+        span= `${source.title} · ${source.section}`
+    aside.cp-card.cp-document
+      .cp-feature-icon
+        i.fa-solid.fa-list-check(aria-hidden='true')
+      h2 Metti alla prova quello che hai imparato
+      p Tre domande con spiegazioni e riferimenti al manuale.
+      a.cp-btn.cp-btn-primary(href='/quiz')
+        | Inizia il mini-quiz
+        i.fa-solid.fa-arrow-right(aria-hidden='true')
+      a.cp-text-link(href='/assistente') Chiedi all’assistente
