@@ -1,16 +1,16 @@
 :root {
   color-scheme: light;
-  --cp-blue: #1457a6;
-  --cp-blue-deep: #0e3f78;
-  --cp-secondary: #0b7a75;
+  --cp-blue: var(--orienta-primary);
+  --cp-blue-deep: var(--orienta-primary-dark);
+  --cp-secondary: var(--orienta-teal);
   --cp-navy: var(--cp-blue-deep);
   --cp-sidebar: var(--cp-blue-deep);
-  --cp-ink: #1b2733;
-  --cp-muted: #4a5968;
-  --cp-surface: #f4f7fa;
-  --cp-border: #d5dce4;
+  --cp-ink: var(--orienta-text);
+  --cp-muted: var(--orienta-muted);
+  --cp-surface: var(--orienta-background);
+  --cp-border: var(--orienta-border);
   --cp-pale: #e5eef8;
-  --cp-white: #fff;
+  --cp-white: var(--orienta-surface);
   --cp-level-1: #1e7b4f;
   --cp-level-1-tint: #e3f4eb;
   --cp-level-1-ink: #14573a;
@@ -29,10 +29,10 @@
   --cp-training: var(--cp-secondary);
   --cp-training-tint: #ddf1ef;
   --cp-training-ink: #085b57;
-  --cp-radius: 16px;
-  --cp-shadow: 0 1px 3px rgba(27, 39, 51, 0.08), 0 2px 8px rgba(27, 39, 51, 0.06);
-  --cp-font: Inter, 'Segoe UI', system-ui, sans-serif;
-  --cp-heading-font: 'Titillium Web', var(--cp-font);
+  --cp-radius: var(--orienta-card-radius);
+  --cp-shadow: var(--orienta-card-shadow);
+  --cp-font: var(--orienta-body-font);
+  --cp-heading-font: var(--orienta-heading-font);
 }
 
 .cp-app {
@@ -42,7 +42,7 @@
   color: var(--cp-ink);
   font-family: var(--cp-font);
   font-size: 16px;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
 .cp-app [hidden] {
@@ -88,7 +88,7 @@
 }
 
 .cp-header {
-  min-height: 64px;
+  min-height: 70px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -102,35 +102,11 @@
   outline-color: white;
 }
 
-.cp-brand,
 .cp-header-actions,
 .cp-account,
 .cp-demo-badge {
   display: flex;
   align-items: center;
-}
-.cp-brand {
-  gap: 17px;
-  color: white;
-  font-family: var(--cp-heading-font);
-  font-size: 1.18rem;
-  font-weight: 700;
-}
-.cp-brand:hover {
-  color: white;
-}
-.cp-brand img {
-  width: 148px;
-  height: auto;
-  object-fit: contain;
-  background: white;
-  border-radius: 6px;
-  padding: 4px 7px;
-}
-.cp-brand-divider {
-  align-self: stretch;
-  width: 1px;
-  background: #ffffff40;
 }
 .cp-header-actions {
   gap: 17px;
@@ -274,7 +250,7 @@
   min-height: 48px;
   padding: 9px 16px;
   border: 2px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--orienta-button-radius);
   font: inherit;
   font-size: 1rem;
   font-weight: 600;
@@ -315,7 +291,7 @@
   color: var(--cp-blue-deep);
 }
 .cp-btn-white:hover {
-  background: #e0f4ff;
+  background: var(--cp-pale);
   color: var(--cp-blue-deep);
 }
 .cp-btn-outline {
@@ -422,6 +398,12 @@
 }
 .cp-module-list li + li {
   border-top: 1px solid var(--cp-border);
+}
+.cp-module-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 .cp-module-list small {
   display: block;
@@ -899,8 +881,8 @@ a.cp-source:hover {
   width: 100%;
   min-width: 0;
   padding: 8px 10px;
-  border: 1px solid #adbed0;
-  border-radius: 7px;
+  border: 1px solid var(--orienta-field-border);
+  border-radius: var(--orienta-button-radius);
   background: white;
   color: var(--cp-ink);
   font: inherit;
@@ -923,7 +905,7 @@ a.cp-source:hover {
 }
 .cp-app .cp-form-error {
   margin-top: 8px;
-  color: #a82b23;
+  color: var(--cp-bug-ink);
   font-weight: 650;
   font-size: 0.86rem;
 }
@@ -1022,13 +1004,13 @@ a.cp-source:hover {
 .cp-type-tag {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 7px;
-  border: 1px solid var(--cp-config);
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border: 1.5px solid var(--cp-config);
   border-radius: 6px;
   background: var(--cp-config-tint);
   color: var(--cp-config-ink);
-  font-size: 0.83rem;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 .cp-type-tag.type-bug {
@@ -1040,6 +1022,9 @@ a.cp-source:hover {
   border-color: var(--cp-training);
   background: var(--cp-training-tint);
   color: var(--cp-training-ink);
+}
+.cp-type-tag > i {
+  flex: none;
 }
 
 .cp-quiz {
@@ -1383,16 +1368,9 @@ a.cp-source:hover {
     grid-template-columns: minmax(0, 1fr);
   }
   .cp-header {
-    min-height: 61px;
+    min-height: 64px;
     gap: 6px;
     padding-inline: 11px;
-  }
-  .cp-brand {
-    gap: 6px;
-    font-size: 0.98rem;
-  }
-  .cp-brand img {
-    width: 90px;
   }
   .cp-header-actions {
     gap: 6px;

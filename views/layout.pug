@@ -8,8 +8,7 @@ html.h-100(lang='en')
     //- Facebook App ID
     meta(property='fb:app_id', content=FACEBOOK_ID)
 
-    title #{ title } - Hackathon Starter
-    link(rel='shortcut icon', href='/favicon.ico')
+    title= title + ' | ' + productName
     //link(rel='stylesheet', href='/css/bootstrap.min.css') // bootstrap css gets added to main.css via main.scss build
     //- Theme bootstrap: stamp `data-bs-theme` (Bootstrap 5.3's data color mode)
     //- and the cookieconsent `cc--darkmode` class BEFORE the stylesheets load,
@@ -37,10 +36,11 @@ html.h-100(lang='en')
         html.classList.toggle('cc--darkmode', theme === 'dark');
       })();
     link(rel='stylesheet', href='/css/main.css?v=' + getFileHash('/css/main.css'))
+    include partials/orienta-head
     link(rel='stylesheet', href='/css/lib/cookieconsent.min.css?v=' + getFileHash('/css/lib/cookieconsent.min.css'))
     block head
 
-  body.d-flex.flex-column.h-100
+  body.orienta-shell.d-flex.flex-column.h-100
     include partials/header
 
     .flex-shrink-0

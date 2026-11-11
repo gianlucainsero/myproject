@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <clipPath id="inner">
+      <circle cx="60" cy="60" r="47"/>
+    </clipPath>
+    <linearGradient id="beam" x1="62" y1="42" x2="110" y2="16" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8fd3cf" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#8fd3cf" stop-opacity=".08"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="26" fill="#0e3f78"/>
+  <circle cx="60" cy="60" r="54" fill="#0e3f78" stroke="#f4f7fa" stroke-width="3.5"/>
+  <g clip-path="url(#inner)">
+    <polygon points="63,40 118,4 118,30" fill="url(#beam)"/>
+    <rect y="90" width="120" height="40" fill="#1457a6"/>
+    <rect y="96" width="120" height="2.5" fill="#0e3f78" opacity=".35"/>
+    <rect y="103" width="120" height="2.5" fill="#0e3f78" opacity=".2"/>
+  </g>
+  <polygon points="52,52 68,52 73,90 47,90" fill="#f4f7fa"/>
+  <polygon points="50.4,64 69.6,64 70.9,74 49.1,74" fill="#1457a6"/>
+  <rect x="47" y="48" width="26" height="4" rx="1" fill="#f4f7fa"/>
+  <rect x="53" y="36" width="14" height="12" fill="#f4f7fa"/>
+  <rect x="56" y="38.5" width="8" height="7.5" fill="#8fd3cf"/>
+  <polygon points="51,36 69,36 60,26" fill="#f4f7fa"/>
+  <rect x="59" y="21" width="2" height="6" fill="#f4f7fa"/>
+</svg>
