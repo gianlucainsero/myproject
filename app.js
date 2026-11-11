@@ -250,6 +250,7 @@ app.locals.FACEBOOK_PIXEL_ID = process.env.FACEBOOK_PIXEL_ID ? process.env.FACEB
  * Primary app routes.
  */
 app.get('/', comunePilotController.home);
+app.get('/benvenuto', comunePilotController.welcome);
 app.get('/formazione/cie', comunePilotController.lesson);
 app.get('/assistente', comunePilotController.assistant);
 app.get('/quiz', comunePilotController.quiz);

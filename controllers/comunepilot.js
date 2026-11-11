@@ -80,6 +80,10 @@ exports.lesson = async (req, res) => {
   res.render('comunepilot/lesson', { ...locals('lesson', 'Rilascio CIE in Cityware'), source: { ...demo.sources.cie, url: '/manuali/cie' } });
 };
 
+exports.welcome = (req, res) => {
+  res.render('comunepilot/welcome', locals('home', 'Primo accesso'));
+};
+
 exports.assistant = (req, res) => {
   let assistantMode = 'Risposte dimostrative dai manuali';
   if (useTeamAI()) assistantMode = ai.isAiConfigured() ? 'Gemini con fonti dai manuali' : 'Ricerca nei manuali · modalità di riserva';

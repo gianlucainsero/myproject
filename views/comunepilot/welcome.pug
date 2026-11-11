@@ -1,0 +1,31 @@
+extends layout
+
+block content
+  a.cp-back(href='/')
+    i.fa-solid.fa-arrow-left(aria-hidden='true')
+    | Il mio percorso
+  header.cp-page-intro
+    span.cp-eyebrow Primo accesso
+    h1 Benvenuta/o nel Comune di Vallechiara
+    p Il tuo ufficio ti ha assegnato Servizi Demografici per Anagrafe, Elettorale e Stato civile.
+    p Il tuo account è stato assegnato dal Comune.
+  .cp-home-grid
+    section.cp-card.cp-document(aria-labelledby='welcome-path')
+      h2#welcome-path Il tuo percorso iniziale
+      ol.cp-steps
+        li
+          a.cp-text-link(href='/formazione/cie') Microlezione CIE
+        li
+          a.cp-text-link(href='/quiz') Primo ripasso
+        li
+          a.cp-text-link(href='/assistente') Prova l’assistente
+      a.cp-btn.cp-btn-primary(href='/formazione/cie') Inizia il percorso
+    section.cp-card.cp-document(aria-labelledby='welcome-skills')
+      h2#welcome-skills Le mie competenze
+      each skill in ['Anagrafe', 'Elettorale', 'Stato civile']
+        .cp-skill
+          .cp-skill-label
+            strong= skill
+            span.cp-skill-status Da iniziare
+            span.cp-skill-score 0%
+          progress.cp-progress(value='0', max='100', aria-label=skill)
