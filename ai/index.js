@@ -44,7 +44,7 @@ function normalizeResult(r, chunks, area) {
     choices: r.question && Array.isArray(r.choices) ? r.choices.slice(0, 4) : [],
     sources: toSources(chunks, r.sourceIds),
     quizTopic: level === 3 ? null : (r.quizTopic || null),
-    knowledgeGap: Boolean(r.knowledgeGap),
+    knowledgeGap: Boolean(r.knowledgeGap) && !(ticket && ticket.type === 'bug'),
     ticket,
   };
 }
