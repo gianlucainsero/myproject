@@ -8,7 +8,7 @@ const area = 'demografici';
 const useTeamAI = () => process.env.COMUNEPILOT_LIVE_AI !== 'false';
 const aiModule = () => (useTeamAI() ? ai : demo);
 
-const ticketTypes = { bug: 'Possibile anomalia', configurazione: 'Configurazione', formazione: 'Formazione', altro: 'Supporto operativo' };
+const ticketTypes = { bug: 'Bug', configurazione: 'Configurazione', formazione: 'Formazione', altro: 'Supporto operativo' };
 const urgencyLabels = { oggi: 'Entro oggi', presto: 'A breve', nessuna: 'Nessuna scadenza' };
 const impactLabels = { ufficio: 'Ufficio bloccato', operatore: 'Singolo operatore', limitato: 'Limitato' };
 const priorities = { alta: 0, media: 1, bassa: 2 };
@@ -88,17 +88,33 @@ exports.manual = (req, res) => {
   return res.render('comunepilot/manual', { ...locals('manual', source.title), source });
 };
 
+function rankDashboardRows(values, examples) {
+  const rows = new Map();
+  const add = (label, session, simulated) => {
+    const key = label.normalize('NFC').toLocaleLowerCase('it').replaceAll('’', "'").replace(/\s+/g, ' ').trim();
+    const row = rows.get(key) || { label, session: 0, simulated: 0, count: 0 };
+    row.session += session;
+    row.simulated += simulated;
+    row.count += session + simulated;
+    rows.set(key, row);
+  };
+  for (const label of values) add(label, 1, 0);
+  for (const { label, count } of examples) add(label, 0, count);
+  return [...rows.values()].sort((first, second) => second.count - first.count || first.label.localeCompare(second.label, 'it'));
+}
+
 exports.dashboard = async (req, res) => {
   const identity = owner(req);
+  const { dashboardExample: example } = demo;
   const [cases, quizzes] = await Promise.all([
-    Case.find({ owner: identity }).select('topic level resolvedAt ticket').lean(),
+    Case.find({ owner: identity }).select('topic level resolvedAt ticket draft.description manualGaps').lean(),
     Quiz.find({ owner: identity, completedAt: { $exists: true } })
       .select('topic questions answers score')
       .lean(),
   ]);
   const resolved = cases.filter((entry) => entry.resolvedAt && !entry.ticket);
-  const closedDirect = cases.filter((entry) => entry.level === 1 && (entry.resolvedAt || entry.ticket));
-  const directRate = closedDirect.length ? Math.round((100 * resolved.filter((entry) => entry.level === 1).length) / closedDirect.length) : null;
+  const closed = cases.filter((entry) => entry.resolvedAt || entry.ticket).length;
+  const resolvedDirect = resolved.filter((entry) => entry.level === 1).length;
   const quizTotals = new Map();
   for (const quiz of quizzes) {
     const total = quizTotals.get(quiz.topic) || { score: 0, questions: 0, attempts: 0 };
@@ -118,20 +134,35 @@ exports.dashboard = async (req, res) => {
   }
   const difficulty = Array.from(errors.values()).sort((first, second) => second.count - first.count)[0];
   const questionCount = quizzes.reduce((total, quiz) => total + quiz.questions.length, 0);
-  const quizAverage = questionCount ? Math.round((100 * quizzes.reduce((total, quiz) => total + quiz.score, 0)) / questionCount) : null;
+  const quizCorrect = quizzes.reduce((total, quiz) => total + quiz.score, 0);
   const requestedType = req.query.tipo;
-  const filter = Object.hasOwn(ticketTypes, requestedType) ? requestedType : '';
-  const actualTickets = cases.filter((entry) => entry.ticket).map((entry) => ({ _id: entry._id, ...entry.ticket, urgency: urgencyLabels[entry.ticket.urgency] }));
-  const tickets = [...actualTickets, ...demo.exampleTickets].filter((ticket) => !filter || ticket.type === filter).sort((first, second) => priorities[first.priority] - priorities[second.priority] || first.createdAt - second.createdAt);
+  const filter = typeof requestedType === 'string' && Object.hasOwn(ticketTypes, requestedType) ? requestedType : '';
+  const actualTickets = cases.filter((entry) => entry.ticket).map((entry) => ({ _id: entry._id, ...entry.ticket, municipality: 'Vallechiara', aiSummary: entry.draft?.description || '', urgency: urgencyLabels[entry.ticket.urgency] }));
+  const queue = [...actualTickets, ...example.tickets].sort((first, second) => priorities[first.priority] - priorities[second.priority] || first.createdAt - second.createdAt);
+  const tickets = filter ? queue.filter((ticket) => ticket.type === filter) : queue;
+  const filters = [{ value: '', label: 'Tutti', count: queue.length }, ...Object.entries(ticketTypes).map(([value, label]) => ({ value, label, count: queue.filter((ticket) => ticket.type === value).length }))];
+  const highPriority = queue.filter((ticket) => ticket.priority === 'alta').length;
+  const metrics = [
+    { label: 'Ticket evitati', value: resolved.length + example.resolved, detail: `${resolved.length} dalla sessione`, icon: 'fa-circle-check' },
+    { label: 'Risolte al livello 1', value: `${Math.round((100 * (resolvedDirect + example.resolvedDirect)) / (closed + example.closed))}%`, detail: 'Sulle richieste chiuse', icon: 'fa-comment-dots' },
+    { label: 'Competenza media', value: `${Math.round((100 * (quizCorrect + example.quizCorrect)) / (questionCount + example.quizQuestions))}%`, detail: `${quizzes.length} quiz dalla sessione`, icon: 'fa-list-check' },
+    { label: 'Ticket in coda', value: queue.length, detail: `${highPriority} a priorità alta`, icon: 'fa-ticket' },
+  ];
+  const requestedTopics = rankDashboardRows(cases.map((entry) => entry.topic).filter(Boolean), example.topics).slice(0, 6);
+  const manualGaps = rankDashboardRows(
+    cases.flatMap((entry) => entry.manualGaps || []),
+    example.gaps,
+  );
   res.render('comunepilot/dashboard', {
     ...locals('dashboard', 'Cruscotto Palitalsoft'),
     topics,
     tickets,
     ticketTypes,
+    filters,
     filter,
-    resolved: resolved.length,
-    directRate,
-    quizAverage,
+    metrics,
+    requestedTopics,
+    manualGaps,
     difficulty,
   });
 };
@@ -183,13 +214,15 @@ exports.ask = async (req, res) => {
   const nextHistory = [...history, { role: 'user', content: message }, { role: 'assistant', content: result.question ? `${result.answer}\n${result.question}` : result.answer }];
   const draft = result.level === 3 && result.ticket ? result.ticket : undefined;
   const values = { level: result.level, history: nextHistory, topic: quizTopic || existing?.topic || sources[0]?.title || 'Supporto operativo' };
+  const manualGap = result.knowledgeGap === true;
   let saved;
   if (existing) {
     const update = draft ? { $set: { ...values, draft } } : { $set: values, $unset: { draft: 1 } };
+    if (manualGap) update.$push = { manualGaps: message };
     saved = await Case.findOneAndUpdate({ _id: existing._id, owner: identity, ticket: { $exists: false }, resolvedAt: { $exists: false }, updatedAt: existing.updatedAt }, update, { returnDocument: 'after' });
     if (!saved) return res.status(409).json({ error: 'La richiesta è cambiata. Avvia una nuova domanda.' });
   } else {
-    saved = await Case.create({ owner: identity, ...values, draft });
+    saved = await Case.create({ owner: identity, ...values, draft, manualGaps: manualGap ? [message] : [] });
   }
   return res.json({ ...result, sources, quizTopic, caseId: saved.id });
 };

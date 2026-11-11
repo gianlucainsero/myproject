@@ -20,6 +20,7 @@ const caseSchema = new mongoose.Schema(
     topic: String,
     level: Number,
     history: [{ role: String, content: String, _id: false }],
+    manualGaps: [String],
     draft: ticketSchema,
     ticket: ticketSchema,
     resolvedAt: Date,

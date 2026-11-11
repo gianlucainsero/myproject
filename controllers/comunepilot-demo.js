@@ -93,9 +93,36 @@ const askAssistant = ({ message, history }) => {
   return { ...result, ticket: { type: 'altro', priority: 'bassa', module: 'Servizi Demografici', summary: 'Richiesta di supporto operativo', description: message, stepsTried: [] } };
 };
 
-const exampleTickets = [
-  { _id: 'DEMO-02', summary: 'Configurazione stampante di sportello', type: 'configurazione', priority: 'media', urgency: 'A breve', createdAt: new Date('2026-11-10T09:30:00+01:00'), example: true },
-  { _id: 'DEMO-01', summary: 'Chiarimento sui filtri dell’elenco certificati', type: 'formazione', priority: 'bassa', urgency: 'Nessuna scadenza', createdAt: new Date('2026-11-09T14:15:00+01:00'), example: true },
-];
+const dashboardExample = {
+  resolved: 14,
+  closed: 18,
+  resolvedDirect: 11,
+  quizCorrect: 19,
+  quizQuestions: 30,
+  tickets: [
+    { _id: 'DEMO-01', summary: 'Anteprima certificato senza intestazione', aiSummary: 'L’anteprima perde l’intestazione solo scegliendo il modello di sportello.', municipality: 'Borgorivo', type: 'bug', priority: 'media', createdAt: new Date('2026-11-09T09:10:00+01:00'), example: true },
+    {
+      _id: 'DEMO-02',
+      summary: 'Configurazione stampante di sportello',
+      aiSummary: 'La nuova stampante è visibile, ma manca l’associazione al profilo di sportello.',
+      municipality: 'Serralume',
+      type: 'configurazione',
+      priority: 'media',
+      createdAt: new Date('2026-11-10T09:30:00+01:00'),
+      example: true,
+    },
+    { _id: 'DEMO-03', summary: 'Chiarimento sui filtri dell’elenco certificati', aiSummary: 'L’operatore cerca il filtro per tipologia di certificato.', municipality: 'Collebrina', type: 'formazione', priority: 'bassa', createdAt: new Date('2026-11-10T14:15:00+01:00'), example: true },
+  ],
+  topics: [
+    { label: 'Liste sezionali', count: 9 },
+    { label: 'Carte d’identità', count: 7 },
+    { label: 'Cambio di residenza', count: 5 },
+    { label: 'Atti di nascita', count: 3 },
+  ],
+  gaps: [
+    { label: 'Come registrare una rettifica per il voto domiciliare?', count: 3 },
+    { label: 'Come correggere un disallineamento dopo la stampa?', count: 2 },
+  ],
+};
 
-module.exports = { askAssistant, generateQuiz, sources, topic, exampleTickets };
+module.exports = { askAssistant, generateQuiz, sources, topic, dashboardExample };

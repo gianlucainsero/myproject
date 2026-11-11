@@ -5,87 +5,102 @@ block content
     span.cp-eyebrow Spazio formatore
     h1 Cruscotto Palitalsoft
     p Servizi Demografici · Attività della sessione demo
-  section.cp-metrics(aria-label='Indicatori della sessione')
-    article.cp-card.cp-metric
-      i.fa-solid.fa-circle-check(aria-hidden='true')
-      strong= resolved
-      span Richieste risolte senza ticket
-    article.cp-card.cp-metric
-      i.fa-solid.fa-comment-dots(aria-hidden='true')
-      strong= directRate === null ? '—' : `${directRate}%`
-      span Esito delle risposte dirette
-    article.cp-card.cp-metric
-      i.fa-solid.fa-list-check(aria-hidden='true')
-      strong= quizAverage === null ? '—' : `${quizAverage}%`
-      span Risultato medio dei quiz
-  section#coda.cp-card.cp-document.cp-queue(aria-labelledby='coda-title')
-    .cp-queue-header
-      div
-        h2#coda-title Coda simulata
-        p Richieste ordinate per priorità, dalla più alta.
-      form.cp-filter(action='/palitalsoft#coda', method='get')
-        label(for='tipo') Tipo di richiesta
-        select#tipo(name='tipo')
-          option(value='') Tutti i tipi
-          each label, value in ticketTypes
-            option(value=value, selected=filter === value)= label
-        button.cp-btn.cp-btn-outline(type='submit') Filtra
-    if tickets.length
-      .table-responsive
-        table.cp-table
-          thead
-            tr
-              th(scope='col') Richiesta
-              th(scope='col') Tipo
-              th(scope='col') Urgenza
-              th(scope='col') Priorità
-          tbody
-            each ticket in tickets
+  section.cp-metrics(aria-label='Indicatori della sessione e dati simulati')
+    each metric, index in metrics
+      article.cp-card.cp-metric
+        span= metric.label
+        strong= metric.value
+        small(class=index === 3 ? 'cp-metric-priority' : '')
+          i.fa-solid(aria-hidden='true', class=metric.icon)
+          = metric.detail
+  p.cp-dashboard-note Dati della sessione e dati simulati inclusi negli indicatori.
+
+  .cp-dashboard-grid
+    section#coda.cp-card.cp-document.cp-queue(aria-labelledby='coda-title')
+      h2#coda-title Coda ticket intelligente
+      p Ordinata per priorità. Tipo e riassunto sono proposti dall’IA.
+      nav.cp-ticket-filters(aria-label='Filtra per tipo')
+        each item in filters
+          a.cp-filter-chip(href=item.value ? `/palitalsoft?tipo=${encodeURIComponent(item.value)}#coda` : '/palitalsoft#coda', aria-current=filter === item.value ? 'true' : undefined)
+            = `${item.label} · ${item.count}`
+      if tickets.length
+        .table-responsive
+          table.cp-table
+            thead
               tr
-                td
-                  if ticket.example
-                    strong= ticket.summary
-                    span.cp-table-note Dato di esempio
-                  else
-                    details
-                      summary= ticket.summary
-                      p= ticket.description
-                      if ticket.stepsTried.length
-                        ul
-                          each step in ticket.stepsTried
-                            li= step
-                    span.cp-table-note Aperto · #{ String(ticket._id).slice(-6).toUpperCase() }
-                td= ticketTypes[ticket.type]
-                td= ticket.urgency
-                td
-                  span.cp-priority-tag(class=`priority-${ticket.priority}`)= ticket.priority
-    else
-      p Nessun ticket per il tipo selezionato.
-  .cp-detail-grid.cp-dashboard-bottom
-    section.cp-card.cp-document(aria-labelledby='quiz-result-title')
-      h2#quiz-result-title Risultati per argomento
-      if topics.length
-        each result in topics
-          .cp-topic-row
-            strong= result.topic
-            span= `${result.score} su ${result.questions} risposte corrette`
-            progress.cp-progress(value=result.percent, max='100', aria-label=result.topic)
+                th(scope='col') Richiesta
+                th(scope='col') Comune
+                th(scope='col') Tipo
+                th(scope='col') Priorità
+            tbody
+              each ticket in tickets
+                tr
+                  td
+                    if ticket.example
+                      strong= ticket.summary
+                    else
+                      details
+                        summary= ticket.summary
+                        p= ticket.description
+                        if ticket.urgency
+                          p= `Urgenza: ${ticket.urgency}`
+                        if ticket.stepsTried.length
+                          ul
+                            each attempt in ticket.stepsTried
+                              li= attempt
+                    if ticket.aiSummary
+                      .cp-ai-summary
+                        span IA
+                        p= ticket.aiSummary
+                    if ticket.example
+                      span.cp-sample-mark Dati simulati
+                    else
+                      span.cp-table-note Aperto · #{ String(ticket._id).slice(-6).toUpperCase() }
+                  td= ticket.municipality
+                  td
+                    span.cp-type-tag(class=`type-${ticket.type}`)= ticketTypes[ticket.type]
+                  td
+                    span.cp-priority-tag(class=`priority-${ticket.priority}`)= ticket.priority
       else
-        p I risultati appariranno dopo il primo quiz completato in questa sessione.
-    section.cp-card.cp-document.cp-training-note(aria-labelledby='training-note-title')
-      if difficulty
-        span.cp-eyebrow Difficoltà emersa nel quiz
-        h2#training-note-title= difficulty.topic
-        p
-          strong= difficulty.question
-          |
-          | · #{ difficulty.count } #{ difficulty.count === 1 ? 'errore' : 'errori' } nella sessione.
-        p Aggiungi un esempio pratico che chiarisca questo passaggio e verifica i prossimi risultati.
-      else
-        span.cp-eyebrow Scenario di esempio
-        h2#training-note-title Migliora la microlezione CIE
-        p Aggiungi un esempio pratico sul tipo di CIE e sulla modalità di pagamento. Verifica nei prossimi quiz se il passaggio è più chiaro.
-      if !difficulty || difficulty.topic === 'Carte d’identità'
-        a.cp-text-link(href='/formazione/cie')
-          | Apri la lezione
-          i.fa-solid.fa-arrow-right(aria-hidden='true')
+        p Nessun ticket per il tipo selezionato.
+
+    .cp-dashboard-side
+      section.cp-card.cp-document(aria-labelledby='map-title')
+        h2#map-title Mappa delle difficoltà
+        p Argomenti più chiesti all’assistente.
+        ul.cp-ranked-list
+          each item, index in requestedTopics
+            li
+              .cp-ranked-label
+                strong= item.label
+                span= item.count
+              progress.cp-progress(class=index === 0 ? 'cp-progress-warn' : '', value=item.count, max=requestedTopics[0].count, aria-label=item.label)
+              if item.simulated
+                span.cp-sample-mark= item.session ? `${item.session} dalla sessione · ${item.simulated} simulati` : 'Dati simulati'
+        if difficulty
+          p
+            strong Errore più frequente nei quiz
+            |
+            | · #{ difficulty.question }
+          if difficulty.topic === 'Carte d’identità'
+            a.cp-text-link(href='/formazione/cie') Apri la lezione
+        if topics.length
+          details.cp-quiz-breakdown
+            summary Risultati dei quiz per argomento
+            each result in topics
+              .cp-topic-row
+                strong= result.topic
+                span= `${result.score} su ${result.questions} risposte corrette`
+                progress.cp-progress(value=result.percent, max='100', aria-label=result.topic)
+
+      section.cp-card.cp-document(aria-labelledby='gaps-title')
+        h2#gaps-title Lacune nei manuali
+        p Domande per cui l’assistente ha segnalato informazioni insufficienti.
+        ul.cp-ranked-list
+          each gap in manualGaps
+            li
+              .cp-ranked-label
+                strong= gap.label
+                span.cp-gap-count= gap.count
+              if gap.simulated
+                span.cp-sample-mark= gap.session ? `${gap.session} dalla sessione · ${gap.simulated} simulati` : 'Dati simulati'
