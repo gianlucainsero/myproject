@@ -399,6 +399,12 @@
 .cp-module-list li + li {
   border-top: 1px solid var(--cp-border);
 }
+.cp-module-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
 .cp-module-list small {
   display: block;
   color: var(--cp-muted);
