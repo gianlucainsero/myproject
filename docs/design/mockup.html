@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup – Hackathon Responsible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Titillium+Web:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#1457A6; --primary-d:#0E3F78; --secondary:#0B7A75;
+  --bg:#F4F7FA; --surface:#fff; --text:#1B2733; --muted:#4A5968; --border:#8A97A5; --soft:#D5DCE4;
+  --l1:#1E7B4F; --l1t:#E3F4EB; --l1x:#14573A;
+  --l2:#9A5B00; --l2t:#FFEFC7; --l2x:#6B4300;
+  --l3:#6A3FA0; --l3t:#EEE7F8; --l3x:#4F2A85;
+  --hf:"Titillium Web","Inter",system-ui,sans-serif; --bf:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --shadow:0 1px 3px rgba(27,39,51,.08),0 2px 8px rgba(27,39,51,.06);
+}
+*{box-sizing:border-box}
+body{margin:0;background:#E6EBF0;color:var(--text);font-family:var(--bf);font-size:16px;line-height:1.55}
+h1,h2,h3,h4{font-family:var(--hf);margin:0;line-height:1.2;color:var(--text)}
+p{margin:0}
+.ic{width:20px;height:20px;flex:none;fill:currentColor}
+.ic.sm{width:16px;height:16px}
+
+/* Selettore mockup (solo per la presentazione) */
+.switch{position:sticky;top:0;z-index:5;background:#1B2733;padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.switch span{color:#B5C0CB;font-size:.85rem;margin-right:6px}
+.switch button{font:600 .95rem var(--bf);min-height:44px;padding:.4rem 1rem;border-radius:999px;border:1.5px solid #4A5968;background:transparent;color:#EEF2F6;cursor:pointer}
+.switch button[aria-selected="true"]{background:#fff;color:#1B2733;border-color:#fff}
+.switch button:focus-visible,.btn:focus-visible,.chip:focus-visible,.nav a:focus-visible{outline:3px solid #6FA8E8;outline-offset:2px}
+
+.frame{max-width:1180px;margin:18px auto 40px;background:var(--bg);border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(27,39,51,.18)}
+.screen[hidden]{display:none}
+
+/* Header app */
+.topbar{background:var(--primary-d);color:#fff;display:flex;align-items:center;gap:16px;padding:0 22px;min-height:64px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--hf);font-weight:700;font-size:1.2rem}
+.logo{width:34px;height:34px;border-radius:9px;background:#fff;color:var(--primary-d);display:grid;place-items:center;font-size:.8rem;font-weight:700;border:2px dashed #8FB4E0}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}
+.nav a{color:#D6E3F3;text-decoration:none;font-weight:600;padding:.55rem .9rem;border-radius:8px;display:flex;align-items:center;gap:.45rem;min-height:44px}
+.nav a[aria-current="page"]{background:rgba(255,255,255,.14);color:#fff}
+.who{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:.92rem;color:#D6E3F3}
+.avatar{width:36px;height:36px;border-radius:50%;background:#fff;color:var(--primary-d);display:grid;place-items:center;font-weight:700}
+.who b{color:#fff;display:block;line-height:1.2}
+
+.page{padding:26px 22px 34px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.page-head h1{font-size:1.9rem}
+.page-head p{color:var(--muted);margin-top:4px}
+
+.grid{display:grid;gap:18px}
+.g-home{grid-template-columns:1.25fr 1fr}
+.g-dash{grid-template-columns:2fr 1fr}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+@media (max-width:860px){.g-home,.g-dash{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+
+.card{background:var(--surface);border:1px solid var(--soft);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow)}
+.card h2{font-size:1.25rem;margin-bottom:4px}
+.card .sub{color:var(--muted);font-size:.95rem;margin-bottom:14px}
+.card + .card{margin-top:18px}
+
+.btn{font:600 1rem var(--bf);min-height:48px;padding:.6rem 1.3rem;border-radius:10px;border:2px solid var(--primary);cursor:pointer;background:var(--primary);color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;text-decoration:none}
+.btn.out{background:#fff;color:var(--primary)}
+.btn.sec{background:var(--secondary);border-color:var(--secondary)}
+.btn.lg{min-height:56px;font-size:1.1rem}
+.btn.block{width:100%}
+.btn.l3{background:var(--l3);border-color:var(--l3)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+/* Progress */
+.area{display:flex;justify-content:space-between;font-weight:600}
+.area small{font-weight:500;color:var(--muted)}
+.pb{height:14px;background:var(--soft);border-radius:999px;overflow:hidden;margin:.4rem 0 1rem}
+.pb i{display:block;height:100%;background:var(--secondary);border-radius:999px}
+.lvl{font-size:.82rem;font-weight:600;padding:.15rem .55rem;border-radius:6px;background:#ECEEF2;color:#2F3B49;margin-left:8px}
+
+/* Hero ripassi */
+.hero{background:var(--primary);color:#fff;border-radius:16px;padding:24px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;box-shadow:var(--shadow);margin-bottom:18px}
+.hero h2{color:#fff;font-size:1.45rem}
+.hero p{color:#DCE8F6;margin-top:6px;max-width:52ch}
+.hero .btn{background:#fff;color:var(--primary-d);border-color:#fff;margin-left:auto}
+.hero-ic{width:56px;height:56px;border-radius:14px;background:rgba(255,255,255,.15);display:grid;place-items:center}
+.hero-ic .ic{width:30px;height:30px}
+
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft)}
+.list li:last-child{border-bottom:0}
+.dot{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;flex:none;background:#E5EEF8;color:var(--primary)}
+.list .t{font-weight:600}
+.list .m{color:var(--muted);font-size:.9rem}
+.status{margin-left:auto;font-size:.88rem;font-weight:600;display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap}
+.st-ok{color:var(--l1x)} .st-go{color:var(--primary)} .st-new{color:var(--muted)}
+
+.help{display:flex;gap:14px;align-items:center;background:var(--l1t);border:1.5px solid var(--l1);border-radius:14px;padding:16px 18px}
+.help p{color:var(--l1x)}
+
+/* Chat */
+.chat-wrap{display:grid;grid-template-columns:1fr 300px;gap:18px}
+@media (max-width:860px){.chat-wrap{grid-template-columns:1fr}}
+.chat{background:var(--surface);border:1px solid var(--soft);border-radius:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:620px}
+.chat-head{padding:16px 20px;border-bottom:1px solid var(--soft)}
+.stepper{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.step{flex:1;min-width:150px;display:flex;align-items:center;gap:8px;padding:.55rem .8rem;border-radius:10px;border:1.5px dashed var(--soft);color:var(--muted);font-weight:600;font-size:.92rem;background:#FAFBFC}
+.step .n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:.8rem;background:var(--soft);color:var(--text)}
+.step.on1{border:2px solid var(--l1);background:var(--l1t);color:var(--l1x)}.step.on1 .n{background:var(--l1);color:#fff}
+.step.on2{border:2px solid var(--l2);background:var(--l2t);color:var(--l2x)}.step.on2 .n{background:var(--l2);color:#fff}
+.step.on3{border:2px solid var(--l3);background:var(--l3t);color:var(--l3x)}.step.on3 .n{background:var(--l3);color:#fff}
+.step .now{margin-left:auto;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}
+
+.chat-body{padding:18px 20px;flex:1;background:var(--bg);display:flex;flex-direction:column;gap:12px}
+.conv[hidden]{display:none}
+.conv{display:flex;flex-direction:column;gap:12px}
+.user{margin-left:auto;max-width:78%;background:var(--primary);color:#fff;border-radius:14px 14px 4px 14px;padding:11px 16px}
+.msg{background:#fff;border-radius:12px;padding:16px 18px;border-left:6px solid;max-width:92%;box-shadow:var(--shadow)}
+.msg p{margin-top:.55rem}
+.m1{border-color:var(--l1)}.m2{border-color:var(--l2)}.m3{border-color:var(--l3)}
+.bd{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .8rem;font-size:.92rem;font-weight:600;border-radius:999px;border:1.5px solid}
+.b1{background:var(--l1t);color:var(--l1x);border-color:var(--l1)}
+.b2{background:var(--l2t);color:var(--l2x);border-color:var(--l2)}
+.b3{background:var(--l3t);color:var(--l3x);border-color:var(--l3)}
+ol.steps{margin:.7rem 0 0;padding-left:1.3rem}
+ol.steps li{margin:.3rem 0}
+.source{margin-top:.8rem;display:inline-flex;align-items:center;gap:.45rem;font-size:.92rem;font-weight:600;color:var(--primary);background:#E5EEF8;border-radius:8px;padding:.4rem .7rem;text-decoration:none}
+.quiz-sug{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#DDF1EF;border:1.5px solid var(--secondary);border-radius:12px;padding:12px 16px;max-width:92%}
+.quiz-sug p{color:#085B57;font-weight:600;flex:1;min-width:200px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:.7rem}
+.chip{font:600 .95rem var(--bf);min-height:44px;padding:.4rem 1rem;border-radius:999px;border:1.5px solid var(--l2);background:#fff;color:var(--l2x);cursor:pointer}
+.chip.sel{background:var(--l2);color:#fff}
+.check{list-style:none;padding:0;margin:.7rem 0 0}
+.check li{display:flex;gap:10px;align-items:flex-start;padding:.5rem 0;border-bottom:1px dashed var(--soft)}
+.check li:last-child{border-bottom:0}
+.box{width:24px;height:24px;border-radius:6px;border:2px solid var(--border);flex:none;display:grid;place-items:center;margin-top:1px;background:#fff}
+.box.done{background:var(--l1);border-color:var(--l1);color:#fff}
+.check .done-t{color:var(--muted);text-decoration:line-through}
+.prog-mini{font-size:.9rem;font-weight:600;color:var(--l2x);margin-top:.6rem}
+.ticket{margin-top:.8rem;border:1.5px solid var(--l3);border-radius:12px;overflow:hidden}
+.ticket .th{background:var(--l3t);padding:10px 14px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-weight:600;color:var(--l3x)}
+.ticket dl{margin:0;padding:10px 14px;display:grid;grid-template-columns:130px 1fr;gap:6px 12px;font-size:.95rem}
+.ticket dt{color:var(--muted);font-weight:500}
+.ticket dd{margin:0;font-weight:600}
+
+.composer{padding:14px 20px;border-top:1px solid var(--soft);display:flex;gap:10px}
+.composer input{flex:1;min-height:52px;border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font:400 1rem var(--bf);color:var(--text)}
+.side h3{font-size:1.05rem;margin-bottom:8px}
+.side .note{color:var(--muted);font-size:.9rem}
+.legend li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--soft)}
+.legend li:last-child{border:0}
+
+/* Cruscotto */
+.kpi{background:#fff;border:1px solid var(--soft);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)}
+.kpi .lab{color:var(--muted);font-size:.92rem;font-weight:500}
+.kpi .val{font-family:var(--hf);font-weight:700;font-size:2.2rem;line-height:1.1;margin-top:4px}
+.kpi .trend{font-size:.88rem;font-weight:600;color:var(--l1x);display:inline-flex;align-items:center;gap:.3rem}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.filt{font:600 .9rem var(--bf);min-height:40px;padding:.3rem .9rem;border-radius:999px;border:1.5px solid var(--soft);background:#fff;color:var(--text)}
+.filt.on{border-color:var(--primary);background:#E5EEF8;color:var(--primary-d)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.95rem;min-width:640px}
+th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--soft);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.88rem;text-transform:uppercase;letter-spacing:.03em}
+td .t{font-weight:600}
+td .ai{color:var(--muted);font-size:.9rem;margin-top:2px;display:flex;gap:.35rem}
+td .ai b{color:var(--primary);font-weight:700;font-size:.78rem;background:#E5EEF8;border-radius:4px;padding:0 .35rem;height:1.35rem;line-height:1.35rem;flex:none}
+.tag{font-size:.875rem;font-weight:600;padding:.3rem .65rem;border-radius:6px;display:inline-flex;align-items:center;gap:.35rem;border:1.5px solid;white-space:nowrap}
+.tb{background:#FBE4E2;color:#8C1D17;border-color:#C93C33}
+.tc{background:#ECEEF2;color:#2F3B49;border-color:#6B7888}
+.tf{background:#DDF1EF;color:#085B57;border-color:#0B7A75}
+.pr{font-weight:700;display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap}
+.pa{color:#8C1D17}.pm{color:#6B4300}.pl{color:#14573A}
+.bars li{padding:8px 0}
+.bars .area{font-size:.95rem}
+.bars .pb{margin:.35rem 0 0;height:10px}
+.bars .pb i.warn{background:var(--l2)}
+.gap li{display:block}
+.gap .q{font-weight:600}
+.gap .m{color:var(--muted);font-size:.88rem}
+.count{display:inline-block;font-weight:700;font-size:.85rem;background:var(--l2t);color:var(--l2x);border:1.5px solid var(--l2);border-radius:999px;padding:0 .55rem;margin-left:.4rem}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-ok" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05"/></symbol>
+  <symbol id="i-guide" viewBox="0 0 16 16"><path d="M2 2h12v2H2zm0 5h12v2H2zm0 5h12v2H2z"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 16 16"><path d="M0 4.5A1.5 1.5 0 0 1 1.5 3h13A1.5 1.5 0 0 1 16 4.5V6a.5.5 0 0 1-.5.5 1.5 1.5 0 0 0 0 3 .5.5 0 0 1 .5.5v1.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 11.5V10a.5.5 0 0 1 .5-.5 1.5 1.5 0 1 0 0-3A.5.5 0 0 1 0 6z"/></symbol>
+  <symbol id="i-bug" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/></symbol>
+  <symbol id="i-conf" viewBox="0 0 16 16"><path d="M2 4h12v1.4H2zm0 6.6h12V12H2z"/><circle cx="5" cy="4.7" r="2"/><circle cx="11" cy="11.3" r="2"/></symbol>
+  <symbol id="i-book" viewBox="0 0 16 16"><path d="M2 3h5a1 1 0 0 1 1 1v9a1 1 0 0 0-1-1H2zM14 3H9a1 1 0 0 0-1 1v9a1 1 0 0 1 1-1h5z"/></symbol>
+  <symbol id="i-home" viewBox="0 0 16 16"><path d="M8 1.5 1 7.2V15h5v-4.5h4V15h5V7.2z"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 16 16"><path d="M2 2h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6l-4 3v-3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M1 14h14v1.5H1zM2.5 8h2.5v5H2.5zm4.25-4h2.5v9h-2.5zM11 6h2.5v7H11z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 16 16"><path d="M9 3l-1.1 1.1L11 7.2H2v1.6h9l-3.1 3.1L9 13l5-5z"/></symbol>
+  <symbol id="i-up" viewBox="0 0 16 16"><path d="M8 2 3 7h3v7h4V7h3z"/></symbol>
+  <symbol id="i-down" viewBox="0 0 16 16"><path d="M8 14 3 9h3V2h4v7h3z"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 16 16"><path d="M2 7h12v2H2z"/></symbol>
+  <symbol id="i-send" viewBox="0 0 16 16"><path d="M15.5 1 .5 7l5.5 2.2L8.2 15z"/></symbol>
+  <symbol id="i-tick" viewBox="0 0 16 16"><path d="M6 11.2 2.8 8 1.7 9.1 6 13.4l8.3-8.3-1.1-1.1z"/></symbol>
+  <symbol id="i-q" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0m.9 12.5H7.1v-1.7h1.8zm1.6-5.4c-.4.5-.9.8-1.3 1.1-.3.3-.4.6-.4 1.1H7.1c0-.9.2-1.4.8-1.9.4-.3.8-.6 1-.9.2-.2.3-.5.3-.8 0-.7-.5-1.1-1.2-1.1-.8 0-1.3.5-1.3 1.3H5c0-1.7 1.2-2.8 3-2.8 1.7 0 2.9 1 2.9 2.4 0 .6-.2 1.1-.4 1.6"/></symbol>
+</svg>
+
+<div class="switch" role="tablist" aria-label="Schermate del mockup">
+  <span>Mockup:</span>
+  <button role="tab" aria-selected="true" aria-controls="s-home" id="t-home">1 · Home operatore</button>
+  <button role="tab" aria-selected="false" aria-controls="s-chat" id="t-chat">2 · Assistente (3 livelli)</button>
+  <button role="tab" aria-selected="false" aria-controls="s-dash" id="t-dash">3 · Cruscotto Palitalsoft</button>
+</div>
+
+<div class="frame">
+
+<!-- ============ 1. HOME OPERATORE ============ -->
+<section class="screen" id="s-home" role="tabpanel" aria-labelledby="t-home">
+  <header class="topbar">
+    <div class="brand"><span class="logo">LOGO</span>[Nome prodotto]</div>
+    <nav class="nav" aria-label="Navigazione principale">
+      <a href="#" aria-current="page"><svg class="ic"><use href="#i-home"/></svg>Il mio percorso</a>
+      <a href="#"><svg class="ic"><use href="#i-chat"/></svg>Assistente</a>
+      <a href="#"><svg class="ic"><use href="#i-book"/></svg>Manuali</a>
+    </nav>
+    <div class="who"><div><b>Laura Bianchi</b>Comune di Camerino</div><span class="avatar" aria-hidden="true">LB</span></div>
+  </header>
+  <main class="page">
+    <div class="page-head">
+      <div><h1>Buongiorno, Laura</h1><p>Servizi Demografici · ecco come stai andando questa settimana.</p></div>
+    </div>
+
+    <div class="hero">
+      <div class="hero-ic" aria-hidden="true"><svg class="ic"><use href="#i-play"/></svg></div>
+      <div>
+        <h2>Oggi hai 2 ripassi da fare</h2>
+        <p>Meno di cinque minuti in tutto. Non è un esame: serve solo a fissare quello che già sai.</p>
+      </div>
+      <a class="btn lg" href="#">Inizia il ripasso<svg class="ic"><use href="#i-arrow"/></svg></a>
+    </div>
+
+    <div class="grid g-home">
+      <div>
+        <div class="card">
+          <h2>Le mie competenze</h2>
+          <p class="sub">Quanto ti senti sicura in ogni area, in base ai ripassi fatti.</p>
+          <div class="area"><span>Anagrafe <span class="lvl">Buono</span></span><span>72%</span></div>
+          <div class="pb" role="progressbar" aria-label="Anagrafe" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100"><i style="width:72%"></i></div>
+          <div class="area"><span>Carte d’identità <span class="lvl">Buono</span></span><span>68%</span></div>
+          <div class="pb" role="progressbar" aria-label="Carte d’identità" aria-valuenow="68" aria-valuemin="0" aria-valuemax="100"><i style="width:68%"></i></div>
+          <div class="area"><span>Elettorale <span class="lvl">Da ripassare</span></span><span>45%</span></div>
+          <div class="pb" role="progressbar" aria-label="Elettorale" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"><i style="width:45%"></i></div>
+          <div class="area"><span>Stato civile <span class="lvl">Da iniziare</span></span><span>30%</span></div>
+          <div class="pb" role="progressbar" aria-label="Stato civile" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"><i style="width:30%"></i></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>Il mio percorso</h2>
+          <p class="sub">I moduli attivi nel tuo Comune.</p>
+          <ul class="list">
+            <li><span class="dot"><svg class="ic"><use href="#i-book"/></svg></span><div><div class="t">Anagrafe di base</div><div class="m">6 lezioni su 6</div></div><span class="status st-ok"><svg class="ic sm"><use href="#i-ok"/></svg>Completato</span></li>
+            <li><span class="dot"><svg class="ic"><use href="#i-book"/></svg></span><div><div class="t">Carta d’identità elettronica</div><div class="m">3 lezioni su 4</div></div><span class="status st-go"><svg class="ic sm"><use href="#i-play"/></svg>In corso</span></li>
+            <li><span class="dot"><svg class="ic"><use href="#i-book"/></svg></span><div><div class="t">Elezioni e liste elettorali</div><div class="m">1 lezione su 5</div></div><span class="status st-go"><svg class="ic sm"><use href="#i-play"/></svg>In corso</span></li>
+            <li><span class="dot"><svg class="ic"><use href="#i-book"/></svg></span><div><div class="t">Stato civile</div><div class="m">0 lezioni su 4</div></div><span class="status st-new"><svg class="ic sm"><use href="#i-minus"/></svg>Da iniziare</span></li>
+          </ul>
+          <a class="btn out block" href="#" style="margin-top:8px">Continua il percorso</a>
+        </div>
+        <div class="card help">
+          <span class="dot" style="background:#fff;color:var(--l1)"><svg class="ic"><use href="#i-chat"/></svg></span>
+          <div style="flex:1"><h3 style="color:var(--l1x)">Hai un dubbio?</h3><p>Chiedi all’assistente: ti risponde subito con i passi da fare.</p></div>
+          <a class="btn sec" href="#" style="background:var(--l1);border-color:var(--l1)">Chiedi</a>
+        </div>
+      </div>
+    </div>
+  </main>
+</section>
+
+<!-- ============ 2. ASSISTENTE ============ -->
+<section class="screen" id="s-chat" role="tabpanel" aria-labelledby="t-chat" hidden>
+  <header class="topbar">
+    <div class="brand"><span class="logo">LOGO</span>[Nome prodotto]</div>
+    <nav class="nav" aria-label="Navigazione principale">
+      <a href="#"><svg class="ic"><use href="#i-home"/></svg>Il mio percorso</a>
+      <a href="#" aria-current="page"><svg class="ic"><use href="#i-chat"/></svg>Assistente</a>
+      <a href="#"><svg class="ic"><use href="#i-book"/></svg>Manuali</a>
+    </nav>
+    <div class="who"><div><b>Laura Bianchi</b>Comune di Camerino</div><span class="avatar" aria-hidden="true">LB</span></div>
+  </header>
+  <main class="page">
+    <div class="page-head">
+      <div><h1>Assistente</h1><p>Scrivi il tuo dubbio come lo diresti a un collega.</p></div>
+      <div class="row" role="group" aria-label="Scenario della demo">
+        <span style="color:var(--muted);font-size:.9rem;font-weight:600">Scenario demo:</span>
+        <button class="chip sc" data-sc="1" style="border-color:var(--l1);color:var(--l1x)">1 · Carta d’identità</button>
+        <button class="chip sc" data-sc="2">2 · Elezioni</button>
+        <button class="chip sc" data-sc="3" style="border-color:var(--l3);color:var(--l3x)">3 · Errore stampa</button>
+      </div>
+    </div>
+
+    <div class="chat-wrap">
+      <div class="chat">
+        <div class="chat-head">
+          <strong>Livello di aiuto</strong>
+          <div class="stepper" aria-live="polite">
+            <div class="step" id="st1"><span class="n">1</span>Risposta diretta<span class="now"></span></div>
+            <div class="step" id="st2"><span class="n">2</span>Ti guido io<span class="now"></span></div>
+            <div class="step" id="st3"><span class="n">3</span>Ticket assistenza<span class="now"></span></div>
+          </div>
+        </div>
+
+        <div class="chat-body">
+          <!-- Scenario 1 -->
+          <div class="conv" data-conv="1">
+            <div class="user">Come rilascio una carta d’identità?</div>
+            <div class="msg m1">
+              <span class="bd b1"><svg class="ic sm"><use href="#i-ok"/></svg>Livello 1 · Risposta diretta</span>
+              <p>Ecco i passi in Cityware Online:</p>
+              <ol class="steps">
+                <li>Apri <strong>Anagrafe › Ricerca cittadino</strong> e cerca per codice fiscale.</li>
+                <li>Nella scheda del cittadino scegli <strong>«Carta d’identità»</strong>.</li>
+                <li>Controlla i dati e acquisisci foto e impronte.</li>
+                <li>Premi <strong>«Invia al Ministero»</strong> e stampa la ricevuta.</li>
+              </ol>
+              <a class="source" href="#"><svg class="ic sm"><use href="#i-book"/></svg>Fonte: Manuale Anagrafe, cap. 3 – CIE</a>
+              <div class="row" style="margin-top:.9rem"><button class="btn out">Mi è servito</button><button class="btn out">Ho ancora un dubbio</button></div>
+            </div>
+            <div class="quiz-sug">
+              <p>Vuoi fissarlo? Fai un mini-quiz di 3 domande su questo argomento.</p>
+              <button class="btn sec">Fai il ripasso</button>
+            </div>
+          </div>
+
+          <!-- Scenario 2 -->
+          <div class="conv" data-conv="2" hidden>
+            <div class="user">Domenica ci sono le elezioni e non so da dove partire</div>
+            <div class="msg m2">
+              <span class="bd b2"><svg class="ic sm"><use href="#i-guide"/></svg>Livello 2 · Ti guido passo passo</span>
+              <p>Nessun problema, ci arriviamo insieme. Prima due domande veloci.</p>
+              <p><strong>Che tipo di elezione è?</strong></p>
+              <div class="chips"><button class="chip">Politiche</button><button class="chip sel" aria-pressed="true">Comunali</button><button class="chip">Referendum</button></div>
+              <p><strong>Le liste sezionali sono già aggiornate?</strong></p>
+              <div class="chips"><button class="chip">Sì</button><button class="chip sel" aria-pressed="true">Non lo so</button></div>
+            </div>
+            <div class="user">Comunali, e non so se le liste sono aggiornate</div>
+            <div class="msg m2">
+              <span class="bd b2"><svg class="ic sm"><use href="#i-guide"/></svg>Livello 2 · La tua checklist</span>
+              <p>Ecco cosa fare, in ordine. Spunta ogni passo quando l’hai finito.</p>
+              <ul class="check">
+                <li><span class="box done"><svg class="ic sm"><use href="#i-tick"/></svg></span><span class="done-t">Controlla la revisione dinamica delle liste (Elettorale › Revisioni)</span></li>
+                <li><span class="box"></span><span>Verifica le sezioni e i seggi assegnati</span></li>
+                <li><span class="box"></span><span>Stampa le liste sezionali per ogni seggio</span></li>
+                <li><span class="box"></span><span>Prepara i tesserini elettorali da consegnare</span></li>
+              </ul>
+              <div class="prog-mini">1 passo su 4 completato</div>
+              <a class="source" href="#"><svg class="ic sm"><use href="#i-book"/></svg>Fonte: Manuale Elettorale, cap. 5</a>
+            </div>
+            <div class="quiz-sug">
+              <p>Dopo le elezioni: un mini-quiz di 3 domande per ricordarlo la prossima volta?</p>
+              <button class="btn sec">Fai il ripasso</button>
+            </div>
+          </div>
+
+          <!-- Scenario 3 -->
+          <div class="conv" data-conv="3" hidden>
+            <div class="user">Quando stampo le liste sezionali esce un errore e il PDF è vuoto</div>
+            <div class="msg m2" style="opacity:.85">
+              <span class="bd b2"><svg class="ic sm"><use href="#i-guide"/></svg>Livello 2 · Proviamo insieme</span>
+              <p>Hai già provato a rigenerare la stampa da <strong>Elettorale › Stampe</strong>?</p>
+            </div>
+            <div class="user">Sì, due volte. Stesso errore: «Errore 500 – generazione fallita»</div>
+            <div class="msg m3">
+              <span class="bd b3"><svg class="ic sm"><use href="#i-ticket"/></svg>Livello 3 · Preparo un ticket</span>
+              <p>Sembra un problema del programma, non tuo. Ho scritto la richiesta per l’assistenza: <strong>controlla e conferma prima dell’invio.</strong></p>
+              <div class="ticket">
+                <div class="th"><span>Bozza ticket</span><span>Area: Servizi Demografici</span></div>
+                <dl>
+                  <dt>Oggetto</dt><dd>Errore 500 nella stampa delle liste sezionali</dd>
+                  <dt>Tipo</dt><dd><span class="tag tb"><svg class="ic sm"><use href="#i-bug"/></svg>Possibile bug</span></dd>
+                  <dt>Priorità</dt><dd><span class="pr pa"><svg class="ic sm"><use href="#i-up"/></svg>Alta · elezioni domenica</span></dd>
+                  <dt>Cosa hai provato</dt><dd style="font-weight:500">Rigenerata la stampa 2 volte, stesso errore</dd>
+                </dl>
+              </div>
+              <div class="row" style="margin-top:.9rem"><button class="btn l3"><svg class="ic sm"><use href="#i-send"/></svg>Invia il ticket</button><button class="btn out">Modifica</button></div>
+            </div>
+          </div>
+        </div>
+
+        <form class="composer" onsubmit="return false">
+          <label for="ask" class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Scrivi la tua domanda</label>
+          <input id="ask" placeholder="Scrivi qui la tua domanda…">
+          <button class="btn"><svg class="ic sm"><use href="#i-send"/></svg>Invia</button>
+        </form>
+      </div>
+
+      <aside class="side">
+        <div class="card">
+          <h3>Come ti aiuto</h3>
+          <ul class="list legend">
+            <li><span class="bd b1"><svg class="ic sm"><use href="#i-ok"/></svg>1</span><div><strong>Risposta diretta</strong><div class="note">I passi da fare e il manuale da cui li ho presi.</div></div></li>
+            <li><span class="bd b2"><svg class="ic sm"><use href="#i-guide"/></svg>2</span><div><strong>Ti guido io</strong><div class="note">Ti faccio qualche domanda e poi una checklist.</div></div></li>
+            <li><span class="bd b3"><svg class="ic sm"><use href="#i-ticket"/></svg>3</span><div><strong>Ticket</strong><div class="note">Preparo la richiesta per l’assistenza. La invii tu.</div></div></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Domande frequenti</h3>
+          <ul class="list">
+            <li><span class="t" style="font-weight:500">Cambio di residenza</span></li>
+            <li><span class="t" style="font-weight:500">Certificato di nascita</span></li>
+            <li><span class="t" style="font-weight:500">Tesserino elettorale smarrito</span></li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </main>
+</section>
+
+<!-- ============ 3. CRUSCOTTO ============ -->
+<section class="screen" id="s-dash" role="tabpanel" aria-labelledby="t-dash" hidden>
+  <header class="topbar" style="background:#1B2733">
+    <div class="brand"><span class="logo">LOGO</span>[Nome prodotto] <span style="font-family:var(--bf);font-weight:600;font-size:.85rem;background:rgba(255,255,255,.14);padding:.15rem .5rem;border-radius:6px">Cruscotto</span></div>
+    <nav class="nav" aria-label="Navigazione cruscotto">
+      <a href="#" aria-current="page"><svg class="ic"><use href="#i-ticket"/></svg>Coda ticket</a>
+      <a href="#"><svg class="ic"><use href="#i-chart"/></svg>Difficoltà</a>
+      <a href="#"><svg class="ic"><use href="#i-book"/></svg>Manuali</a>
+    </nav>
+    <div class="who"><div><b>Help desk Palitalsoft</b>Servizi Demografici</div><span class="avatar" aria-hidden="true">HD</span></div>
+  </header>
+  <main class="page">
+    <div class="page-head">
+      <div><h1>Panoramica dell’ultimo mese</h1><p>48 Comuni · 1.240 domande all’assistente · 1–31 ottobre</p></div>
+      <a class="btn out" href="#">Esporta report</a>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="lab">Ticket evitati</div><div class="val">412</div><span class="trend"><svg class="ic sm"><use href="#i-down"/></svg>−38% di ticket rispetto a settembre</span></div>
+      <div class="kpi"><div class="lab">Risolte al livello 1</div><div class="val">67%</div><span class="trend"><svg class="ic sm"><use href="#i-up"/></svg>+9 punti</span></div>
+      <div class="kpi"><div class="lab">Competenza media</div><div class="val">61%</div><span class="trend"><svg class="ic sm"><use href="#i-up"/></svg>+6 punti</span></div>
+      <div class="kpi"><div class="lab">Ticket in coda</div><div class="val">37</div><span class="trend" style="color:#8C1D17"><svg class="ic sm"><use href="#i-bug"/></svg>5 a priorità alta</span></div>
+    </div>
+
+    <div class="grid g-dash">
+      <div class="card">
+        <h2>Coda ticket intelligente</h2>
+        <p class="sub">Ordinata per priorità. Tipo e riassunto sono proposti dall’IA.</p>
+        <div class="filters" role="group" aria-label="Filtra per tipo">
+          <button class="filt on" aria-pressed="true">Tutti · 37</button>
+          <button class="filt">Bug · 9</button>
+          <button class="filt">Configurazione · 11</button>
+          <button class="filt">Formazione · 17</button>
+        </div>
+        <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Richiesta</th><th>Comune</th><th>Tipo</th><th>Priorità</th></tr></thead>
+          <tbody>
+            <tr><td><div class="t">Errore 500 stampa liste sezionali</div><div class="ai"><b>IA</b>Errore ripetibile, PDF vuoto. Elezioni domenica.</div></td><td>Camerino</td><td><span class="tag tb"><svg class="ic sm"><use href="#i-bug"/></svg>Bug</span></td><td><span class="pr pa"><svg class="ic sm"><use href="#i-up"/></svg>Alta</span></td></tr>
+            <tr><td><div class="t">Invio CIE bloccato al Ministero</div><div class="ai"><b>IA</b>Timeout dopo la firma, 3 Comuni coinvolti.</div></td><td>Tolentino</td><td><span class="tag tb"><svg class="ic sm"><use href="#i-bug"/></svg>Bug</span></td><td><span class="pr pa"><svg class="ic sm"><use href="#i-up"/></svg>Alta</span></td></tr>
+            <tr><td><div class="t">Attivare il modulo Stato civile</div><div class="ai"><b>IA</b>Modulo acquistato, utenti senza permessi.</div></td><td>Matelica</td><td><span class="tag tc"><svg class="ic sm"><use href="#i-conf"/></svg>Configurazione</span></td><td><span class="pr pm"><svg class="ic sm"><use href="#i-minus"/></svg>Media</span></td></tr>
+            <tr><td><div class="t">«Non capisco niente» sulle revisioni</div><div class="ai"><b>IA</b>Nuova assunta, non ha fatto il modulo Elettorale.</div></td><td>Recanati</td><td><span class="tag tf"><svg class="ic sm"><use href="#i-book"/></svg>Formazione</span></td><td><span class="pr pm"><svg class="ic sm"><use href="#i-minus"/></svg>Media</span></td></tr>
+            <tr><td><div class="t">Dubbio sul cambio di residenza</div><div class="ai"><b>IA</b>Risposta nel Manuale Anagrafe, cap. 4.</div></td><td>Fabriano</td><td><span class="tag tf"><svg class="ic sm"><use href="#i-book"/></svg>Formazione</span></td><td><span class="pr pl"><svg class="ic sm"><use href="#i-down"/></svg>Bassa</span></td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>Mappa delle difficoltà</h2>
+          <p class="sub">Argomenti più chiesti all’assistente.</p>
+          <ul class="list bars">
+            <li style="display:block"><div class="area"><span>Liste sezionali</span><span>214</span></div><div class="pb"><i class="warn" style="width:92%"></i></div></li>
+            <li style="display:block"><div class="area"><span>Carta d’identità</span><span>180</span></div><div class="pb"><i style="width:78%"></i></div></li>
+            <li style="display:block"><div class="area"><span>Cambio di residenza</span><span>132</span></div><div class="pb"><i style="width:57%"></i></div></li>
+            <li style="display:block"><div class="area"><span>Atti di nascita</span><span>64</span></div><div class="pb"><i style="width:28%"></i></div></li>
+          </ul>
+          <p class="sub" style="margin:10px 0 0"><strong style="color:var(--l2x)">Errore più frequente nei quiz:</strong> scadenze della revisione elettorale (58% di risposte sbagliate).</p>
+        </div>
+        <div class="card">
+          <h2>Lacune nei manuali</h2>
+          <p class="sub">Domande senza risposta nella documentazione.</p>
+          <ul class="list gap">
+            <li><div class="q">Voto domiciliare: come registrarlo?<span class="count">23</span></div><div class="m">Manuale Elettorale · nessuna sezione</div></li>
+            <li><div class="q">CIE per minori senza genitori presenti<span class="count">15</span></div><div class="m">Manuale Anagrafe · cap. 3 incompleto</div></li>
+          </ul>
+          <a class="btn out block" href="#" style="margin-top:10px">Segnala ai formatori</a>
+        </div>
+      </div>
+    </div>
+  </main>
+</section>
+
+</div>
+
+<script>
+const tabs=[...document.querySelectorAll('.switch [role=tab]')];
+tabs.forEach(t=>t.addEventListener('click',()=>{
+  tabs.forEach(x=>{x.setAttribute('aria-selected',x===t);document.getElementById(x.getAttribute('aria-controls')).hidden=x!==t});
+  window.scrollTo({top:0});
+}));
+const scs=[...document.querySelectorAll('.sc')];
+function setScenario(n){
+  document.querySelectorAll('.conv').forEach(c=>c.hidden=c.dataset.conv!=n);
+  [1,2,3].forEach(i=>{
+    const s=document.getElementById('st'+i);
+    s.className='step'+(i==n?' on'+i:'');
+    s.querySelector('.now').textContent=i==n?'Attivo':'';
+  });
+  scs.forEach(b=>{const on=b.dataset.sc==n;b.setAttribute('aria-pressed',on);b.style.background=on?(n==1?'var(--l1)':n==2?'var(--l2)':'var(--l3)'):'#fff';b.style.color=on?'#fff':(b.dataset.sc==1?'var(--l1x)':b.dataset.sc==2?'var(--l2x)':'var(--l3x)')});
+}
+scs.forEach(b=>b.addEventListener('click',()=>setScenario(b.dataset.sc)));
+setScenario(1);
+</script>
+</body>
+</html>
