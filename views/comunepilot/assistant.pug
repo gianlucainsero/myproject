@@ -1,6 +1,7 @@
 extends layout
 
 block content
+  include ticket-icons
   - const levels = [{ label: 'Risposta diretta', icon: 'fa-circle-check', description: 'I passi da fare e il manuale da cui li ho presi.' }, { label: 'Ti guido io', icon: 'fa-list-check', description: 'Ti faccio qualche domanda e ti preparo una checklist.' }, { label: 'Ticket assistenza', icon: 'fa-ticket', description: 'Preparo la richiesta. La confermi tu nella coda simulata.' }];
   header.cp-page-intro
     span.cp-eyebrow Cityware Online
@@ -60,6 +61,8 @@ block content
           dt Tipo
           dd
             span.cp-type-tag(data-ticket-type)
+              i.fa-solid(data-ticket-type-icon, aria-hidden='true')
+              span(data-ticket-type-label)
           dt Priorità
           dd(data-ticket-priority)
           dt Cosa hai provato
@@ -78,10 +81,10 @@ block content
             label
               | Tipo
               select(name='type', required)
-                option(value='bug') Possibile bug
-                option(value='configurazione') Configurazione
-                option(value='formazione') Formazione
-                option(value='altro') Supporto operativo
+                option(value='bug', data-icon=ticketIcons.bug) Possibile bug
+                option(value='configurazione', data-icon=ticketIcons.configurazione) Configurazione
+                option(value='formazione', data-icon=ticketIcons.formazione) Formazione
+                option(value='altro', data-icon=ticketIcons.altro) Supporto operativo
             label
               | Impatto
               select(name='impact', required)

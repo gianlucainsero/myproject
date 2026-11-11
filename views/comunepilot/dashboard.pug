@@ -1,6 +1,7 @@
 extends layout
 
 block content
+  include ticket-icons
   header.cp-page-intro
     span.cp-eyebrow Spazio formatore
     h1 Cruscotto Palitalsoft
@@ -84,7 +85,9 @@ block content
                       span.cp-table-note Aperto · #{ String(ticket._id).slice(-6).toUpperCase() }
                   td= ticket.municipality
                   td
-                    span.cp-type-tag(class=`type-${ticket.type}`)= ticketTypes[ticket.type]
+                    span.cp-type-tag(class=`type-${ticket.type}`)
+                      i.fa-solid(class=ticketIcons[ticket.type], aria-hidden='true')
+                      = ticketTypes[ticket.type]
                   td
                     span.cp-priority-tag(class=`priority-${ticket.priority}`)= ticket.priority
       else

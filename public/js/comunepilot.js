@@ -158,6 +158,9 @@
       if (/ufficio.*bloccat/i.test(message)) fields.impact.value = 'ufficio';
       if (/\boggi\b/i.test(message)) fields.urgency.value = 'oggi';
       const priority = panel.querySelector('.cp-priority');
+      const type = panel.querySelector('[data-ticket-type]');
+      const typeIcon = type.querySelector('[data-ticket-type-icon]');
+      const typeLabel = type.querySelector('[data-ticket-type-label]');
       const refreshPreview = () => {
         const high = fields.impact.value === 'ufficio' || fields.urgency.value === 'oggi';
         const medium = fields.impact.value === 'operatore' || fields.urgency.value === 'presto';
@@ -166,8 +169,9 @@
         const previewPriority = panel.querySelector('[data-ticket-priority]');
         previewPriority.textContent = value;
         previewPriority.className = `cp-priority-tag priority-${value}`;
-        const type = panel.querySelector('[data-ticket-type]');
-        type.textContent = fields.type.selectedOptions[0].textContent;
+        const selectedType = fields.type.selectedOptions[0];
+        typeLabel.textContent = selectedType.textContent;
+        typeIcon.className = `fa-solid ${selectedType.dataset.icon}`;
         type.className = `cp-type-tag type-${fields.type.value}`;
         panel.querySelector('[data-ticket-summary]').textContent = fields.summary.value;
         panel.querySelector('[data-ticket-attempts]').textContent = fields.stepsTried.value.trim() || 'Nessun tentativo indicato';

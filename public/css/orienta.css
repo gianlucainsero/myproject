@@ -1,0 +1,145 @@
+:root {
+  --orienta-primary: #1457a6;
+  --orienta-primary-dark: #0e3f78;
+  --orienta-teal: #0b7a75;
+  --orienta-teal-light: #8fd3cf;
+  --orienta-background: #f4f7fa;
+  --orienta-surface: #fff;
+  --orienta-text: #1b2733;
+  --orienta-muted: #4a5968;
+  --orienta-border: #d5dce4;
+  --orienta-field-border: #8a97a5;
+  --orienta-card-radius: 16px;
+  --orienta-button-radius: 10px;
+  --orienta-card-shadow: 0 1px 3px rgba(27, 39, 51, 0.08), 0 2px 8px rgba(27, 39, 51, 0.06);
+  --orienta-body-font: Inter, system-ui, 'Segoe UI', sans-serif;
+  --orienta-heading-font: 'Titillium Web', var(--orienta-body-font);
+}
+
+.orienta-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding-block: 7px;
+  color: var(--orienta-surface);
+  text-decoration: none;
+}
+
+.orienta-brand:hover {
+  color: var(--orienta-surface);
+}
+
+.orienta-brand-mark {
+  display: block;
+  width: 48px;
+  height: 48px;
+  flex: none;
+}
+
+.orienta-brand-word {
+  display: grid;
+  gap: 5px;
+}
+
+.orienta-brand-name {
+  font: 600 1.5rem / 1 var(--orienta-heading-font);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+.orienta-brand-claim {
+  color: var(--orienta-teal-light);
+  font: 500 0.75rem / 1.3 var(--orienta-body-font);
+  letter-spacing: 0.06em;
+}
+
+.orienta-shell {
+  font-family: var(--orienta-body-font);
+}
+
+[data-bs-theme='light'] .orienta-shell {
+  --bs-body-bg: var(--orienta-background);
+  --bs-body-color: var(--orienta-text);
+  --bs-secondary-color: var(--orienta-muted);
+  --bs-border-color: var(--orienta-border);
+  --bs-link-color: var(--orienta-primary);
+  --bs-link-hover-color: var(--orienta-primary-dark);
+  --bs-link-color-rgb: 20, 87, 166;
+  --bs-link-hover-color-rgb: 14, 63, 120;
+}
+
+.orienta-shell :is(h1, h2, h3) {
+  font-family: var(--orienta-heading-font);
+  font-weight: 700;
+}
+
+.orienta-nav {
+  background: var(--orienta-primary-dark);
+}
+
+.orienta-nav .orienta-brand {
+  margin-right: 16px;
+}
+
+.orienta-nav .orienta-brand:focus-visible {
+  outline: 3px solid var(--orienta-surface);
+  outline-offset: 3px;
+}
+
+.orienta-shell .btn {
+  min-height: 48px;
+  border-radius: var(--orienta-button-radius);
+  font-weight: 600;
+}
+
+.orienta-shell .btn-primary {
+  --bs-btn-color: var(--orienta-surface);
+  --bs-btn-bg: var(--orienta-primary);
+  --bs-btn-border-color: var(--orienta-primary);
+  --bs-btn-hover-color: var(--orienta-surface);
+  --bs-btn-hover-bg: var(--orienta-primary-dark);
+  --bs-btn-hover-border-color: var(--orienta-primary-dark);
+  --bs-btn-active-color: var(--orienta-surface);
+  --bs-btn-active-bg: var(--orienta-primary-dark);
+  --bs-btn-active-border-color: var(--orienta-primary-dark);
+  --bs-btn-focus-shadow-rgb: 20, 87, 166;
+}
+
+[data-bs-theme='light'] .orienta-shell :is(.form-control, .form-select, .form-check-input) {
+  border-color: var(--orienta-field-border);
+  background-color: var(--orienta-surface);
+}
+
+[data-bs-theme='light'] .orienta-shell .form-check-input:checked {
+  background-color: var(--orienta-primary);
+  border-color: var(--orienta-primary);
+}
+
+.orienta-shell :is(.form-control, .form-select) {
+  border-radius: var(--orienta-button-radius);
+}
+
+@media (max-width: 590px) {
+  .orienta-brand {
+    gap: 8px;
+  }
+
+  .orienta-brand-mark {
+    width: 39px;
+    height: 39px;
+  }
+
+  .orienta-brand-word {
+    gap: 3px;
+  }
+
+  .orienta-brand-name {
+    font-size: 1.24rem;
+  }
+
+  .orienta-brand-claim {
+    font-size: 0.65rem;
+    letter-spacing: 0.02em;
+  }
+}
