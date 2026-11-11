@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const sourceSchema = new mongoose.Schema({ title: String, file: String, section: String, module: String }, { _id: false });
+const sourceSchema = new mongoose.Schema({ title: String, file: String, section: String, module: String, chunkId: Number }, { _id: false });
 const questionSchema = new mongoose.Schema({ question: String, options: [String], correctIndex: Number, explanation: String, source: sourceSchema }, { _id: false });
 
 const ticketSchema = new mongoose.Schema(
@@ -40,6 +40,7 @@ const quizSchema = new mongoose.Schema(
     sessionId: String,
     assignment: { type: mongoose.Schema.Types.ObjectId, index: true },
     topic: String,
+    area: String,
     questions: [questionSchema],
     answers: [Number],
     score: { type: Number, default: 0 },

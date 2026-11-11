@@ -20,7 +20,7 @@ const scenarios = [
 ];
 
 (async () => {
-  console.log(`Modalità: ${isAiConfigured() ? 'Gemini (' + (process.env.GEMINI_MODEL || 'gemini-2.5-flash') + ')' : 'RISERVA (nessuna chiave)'}\n`);
+  console.log(`Modalità: ${isAiConfigured() ? `Gemini (${ process.env.GEMINI_MODEL || 'gemini-2.5-flash' })` : 'RISERVA (nessuna chiave)'}\n`);
   for (const message of scenarios) {
     const t = Date.now();
     const r = await askAssistant({ message });
@@ -31,6 +31,6 @@ const scenarios = [
   console.log('### Quiz'); console.log(JSON.stringify(q, null, 2));
   const started = Date.now();
   const lesson = await generateLesson({ topic: 'Apertura operazioni elettorali' });
-  console.log('### Microlezione [' + (Date.now() - started) + ' ms]');
+  console.log(`### Microlezione [${ Date.now() - started } ms]`);
   console.log(JSON.stringify(lesson, null, 2));
 })().catch((e) => { console.error(e); process.exit(1); });

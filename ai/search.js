@@ -55,7 +55,7 @@ function search(query, { area = 'demografici', k = 8, maxPerDoc = 3 } = {}) {
     for (const t of q) {
       const f = it.tf.get(t);
       if (!f) continue;
-      matched++;
+      matched += 1;
       s += idf.get(t) * ((f * (K1 + 1)) / (f + K1 * (1 - B + B * (it.len / avgLen))));
     }
     if (s > 0) scored.push({ it, s: s * (1 + 0.15 * matched) });

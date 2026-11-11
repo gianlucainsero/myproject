@@ -14,7 +14,7 @@ function toSources(chunks, ids) {
     const c = byId.get(id);
     if (!c || seen.has(c.file)) continue;
     seen.add(c.file);
-    out.push({ title: c.title, file: c.file, section: c.heading || null, module: c.module });
+    out.push({ title: c.title, file: c.file, section: c.heading || null, module: c.module, chunkId: c.id });
   }
   return out;
 }
@@ -118,8 +118,8 @@ async function generateQuiz({ topic, n = 3, area = DEFAULT_AREA }) {
     topic,
     questions: questions.map((q) => {
       const c = byId.get(q.sourceId) || chunks[0];
-      const { sourceId, ...rest } = shuffleOptions(q);
-      return { ...rest, source: toSources([c], [c.id])[0] };
+      const { question, options, correctIndex, explanation } = shuffleOptions(q);
+      return { question, options, correctIndex, explanation, source: toSources([c], [c.id])[0] };
     }),
     mock: !configured || undefined,
     fallback: (configured && fallback) || undefined,
@@ -136,7 +136,7 @@ async function generateLesson({ topic, area = DEFAULT_AREA }) {
     try {
       const { title, intro, keyPoints, steps, sourceIds } = await generateJSON({
         system: P.lessonSystem(area),
-        messages: [{ role: 'user', content: "Argomento: " + topic + "\n\nESTRATTI DEI MANUALI:\n" + P.formatContext(chunks) }],
+        messages: [{ role: 'user', content: `Argomento: ${ topic }\n\nESTRATTI DEI MANUALI:\n${ P.formatContext(chunks)}` }],
         schema: P.lessonSchema,
         temperature: 0.2,
       });
@@ -152,12 +152,13 @@ async function generateLesson({ topic, area = DEFAULT_AREA }) {
   const primary = chunks[0];
   const sections = docChunks(area, primary.file);
   const steps = stepsFromDoc(sections);
-  const points = sections.map((section) => firstSentence(section.text));
-  const keyPoints = [...new Set([...points, ...chunks.map((chunk) => firstSentence(chunk.text))])].filter(Boolean).slice(0, 5);
-  const sources = toSources(chunks, chunks.map((chunk) => chunk.id));
+  const numbered = sections.flatMap((section) => Array.from(section.text.matchAll(/^\d+[.)]\s+(.+)$/gm), ([, point]) => point));
+  const summaries = sections.map((section) => firstSentence(section.text.replace(/^\s*\*\*Link utili:\*\*.*$/gim, '')));
+  const keyPoints = [...new Set([summaries[0], ...numbered, ...summaries])].filter(Boolean).slice(0, 5);
+  const sources = toSources([primary], [primary.id]);
   return {
     title: topic,
-    intro: "Ripassa la procedura descritta nel manuale «" + primary.title + "».",
+    intro: `Ripassa la procedura descritta nel manuale «${ primary.title }».`,
     keyPoints,
     steps,
     sources,

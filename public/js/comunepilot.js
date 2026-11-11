@@ -149,6 +149,7 @@
       const editor = panel.querySelector('.cp-ticket-editor');
       const edit = panel.querySelector('[data-ticket-edit]');
       const confirm = panel.querySelector('button[type="submit"]');
+      const ticketStatus = panel.querySelector('.cp-ticket-note');
       fields.summary.value = draft.summary || '';
       fields.description.value = draft.description || '';
       fields.stepsTried.value = (draft.stepsTried || []).join('\n');
@@ -191,6 +192,7 @@
         busy(true);
         confirm.disabled = true;
         edit.disabled = true;
+        ticketStatus.textContent = 'Sto inviando il ticket…';
         const panelError = panel.querySelector('[role="alert"]');
         showError(panelError);
         try {
@@ -203,6 +205,7 @@
           showError(panelError, error);
           confirm.disabled = false;
           edit.disabled = false;
+          ticketStatus.textContent = 'Invio nella coda simulata.';
         } finally {
           busy(false);
           if (form.hidden && !panel.isConnected) newCase.focus();
@@ -217,7 +220,9 @@
       const block = element('div');
       if (result.quizTopic) {
         const suggestion = element('div', 'cp-quiz-suggestion');
-        suggestion.append(element('strong', '', 'Vuoi fissarlo? Fai un mini-quiz'), link('Fai il ripasso', `/quiz?topic=${encodeURIComponent(result.quizTopic)}`, 'cp-btn cp-btn-secondary'));
+        const query = new URLSearchParams({ topic: result.quizTopic });
+        if (result.sources[0]?.module && result.sources[0].module !== 'Servizi Demografici') query.set('area', 'tutti');
+        suggestion.append(element('strong', '', 'Vuoi fissarlo? Fai un mini-quiz'), link('Fai il ripasso', `/quiz?${query}`, 'cp-btn cp-btn-secondary'));
         block.append(suggestion);
       }
       if (result.question || result.level === 3) return block;
@@ -225,9 +230,14 @@
       const direct = result.level === 1;
       const resolved = button(direct ? 'Mi è servito' : 'Ho risolto');
       const help = button(direct ? 'Ho ancora un dubbio' : 'Serve ancora aiuto');
+      const status = element('p', 'cp-chat-pending');
+      status.setAttribute('role', 'status');
+      status.hidden = true;
       resolved.addEventListener('click', async () => {
         if (waiting) return;
         busy(true);
+        status.hidden = false;
+        status.textContent = 'Sto registrando la risposta…';
         showError(errorBox);
         try {
           await request('/api/assistant/resolve', { caseId });
@@ -237,6 +247,7 @@
         } catch (error) {
           showError(errorBox, error);
         } finally {
+          status.hidden = true;
           busy(false);
           if (form.hidden) newCase.focus();
           scroll();
@@ -247,7 +258,7 @@
         else submit('Serve ancora aiuto.', true);
       });
       controls.append(resolved, help);
-      block.prepend(controls);
+      block.prepend(controls, status);
       return block;
     }
 
@@ -343,7 +354,7 @@
 
     function setPending(pending, label = '') {
       status.textContent = label;
-      panel.setAttribute('aria-busy', String(pending));
+      content.setAttribute('aria-busy', String(pending));
       close.disabled = pending;
       publish.disabled = pending;
       triggers.forEach((control) => {
@@ -503,7 +514,7 @@
       statusBox.hidden = false;
       statusBox.textContent = 'Sto preparando il quiz…';
       try {
-        const result = await request('/api/quiz', { topic: quiz.dataset.topic, assignmentId: quiz.dataset.assignment });
+        const result = await request('/api/quiz', { topic: quiz.dataset.topic, area: quiz.dataset.area, assignmentId: quiz.dataset.assignment });
         ({ id: quizId, total } = result);
         start.closest('.cp-quiz-start').hidden = true;
         renderQuestion(result.question, 0);

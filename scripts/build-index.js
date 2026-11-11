@@ -72,7 +72,7 @@ function chunkDoc(text) {
     let cur = '';
     for (const para of s.body.split(/\n\s*\n/)) {
       if (cur && (cur.length + para.length) > MAX_CHARS) { chunks.push({ heading: s.heading, body: cur.trim() }); cur = ''; }
-      cur += para + '\n\n';
+      cur += `${para }\n\n`;
     }
     if (cur.trim()) chunks.push({ heading: s.heading, body: cur.trim() });
   }
@@ -98,7 +98,7 @@ let dupes = 0;
 for (const f of files) {
   const text = fs.readFileSync(f, 'utf8');
   const hash = crypto.createHash('md5').update(text.replace(/\s+/g, ' ').trim()).digest('hex');
-  if (seen.has(hash)) { dupes++; continue; }
+  if (seen.has(hash)) { dupes += 1; continue; }
   seen.set(hash, f);
   const rel = path.relative(SRC, f).split(path.sep).join('/');
   const title = titleOf(f, text);

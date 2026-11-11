@@ -35,10 +35,10 @@ function getIndexedSources(indexArea) {
   const { raw: index } = loadIndex(indexArea);
   const byId = new Map();
   const byFile = new Map();
+  const prefix = indexArea === area ? 'indice-' : 'indice-tutti-';
   for (const chunk of index.chunks) {
     const { title, file, module } = index.docs[chunk.doc];
-    const prefix = indexArea === area ? 'indice-' : 'indice-tutti-';
-    const source = { title, file, module, section: chunk.heading, text: chunk.text, excerpt: true, id: prefix + chunk.id };
+    const source = { title, file, module, chunkId: chunk.id, section: chunk.heading, text: chunk.text, excerpt: true, id: prefix + chunk.id };
     byId.set(source.id, source);
     const key = file.normalize('NFC');
     if (!byFile.has(key)) byFile.set(key, []);
@@ -50,16 +50,16 @@ function getIndexedSources(indexArea) {
 }
 
 const sourceLink = (source, req, indexArea = area) => {
-  if (useTeamAI() && source.file) {
+  const match = Object.entries(demo.sources).find(([, local]) => local.file === source.file);
+  if (source.file && (useTeamAI() || !match)) {
     const entries = getIndexedSources(indexArea).byFile.get(source.file.normalize('NFC')) || [];
-    const indexed = entries.find((entry) => entry.section === source.section) || (source.section == null ? entries[0] : undefined);
+    const indexed = entries.find((entry) => entry.chunkId === source.chunkId && (entry.section || null) === source.section) || entries.find((entry) => entry.section === source.section) || (source.section == null ? entries[0] : undefined);
     if (indexed) {
       req.session.comunePilotCitations = [...new Set([...(req.session.comunePilotCitations || []), indexed.id])].slice(-100);
       return { title: indexed.title, file: indexed.file, module: indexed.module || source.module, section: indexed.section, url: `/manuali/${indexed.id}` };
     }
   }
-  const match = Object.entries(demo.sources).find(([, local]) => local.file === source.file);
-  return { title: source.title, file: source.file, module: source.module, section: source.section || match?.[1].section, url: OLDURL };
+  return { title: source.title, file: source.file, module: source.module, section: source.section || match?.[1].section, url: match ? `/manuali/${match[0]}` : null };
 };
 
 exports.home = async (req, res) => {
@@ -91,7 +91,8 @@ exports.assistant = (req, res) => {
 };
 
 exports.quiz = async (req, res) => {
-  res.render('comunepilot/quiz', { ...locals('quiz', 'Mini-quiz'), topic: trainingTopic(text(req.query.topic, 100)) || demo.topic, latest: await latestQuiz(req) });
+  const quizArea = req.query.area === assistantArea ? assistantArea : area;
+  res.render('comunepilot/quiz', { ...locals('quiz', 'Mini-quiz'), quizArea, topic: trainingTopic(text(req.query.topic, 100)) || demo.topic, latest: await latestQuiz(req) });
 };
 
 exports.review = async (req, res) => {
@@ -106,7 +107,7 @@ exports.review = async (req, res) => {
 
 exports.manual = (req, res) => {
   const { id } = req.params;
-  const cited = useTeamAI() && req.session.comunePilotCitations?.includes(id);
+  const cited = req.session.comunePilotCitations?.includes(id);
   const indexArea = id.startsWith('indice-tutti-') ? assistantArea : area;
   const indexed = cited ? getIndexedSources(indexArea).byId.get(id) : null;
   const source = Object.hasOwn(demo.sources, id) ? demo.sources[id] : indexed;
@@ -355,17 +356,18 @@ exports.startQuiz = async (req, res) => {
   let topic = trainingTopic(text(req.body?.topic, 100)) || demo.topic;
   const assignmentId = req.body?.assignmentId;
   const identity = owner(req);
+  let quizArea = req.body?.area === assistantArea ? assistantArea : area;
   let result;
   if (assignmentId) {
     const assignment = validId(assignmentId) ? await Assignment.findById(assignmentId).lean() : null;
     if (!assignment) return res.status(404).json({ error: 'Ripasso non disponibile.' });
     if (assignment.completions.some((entry) => entry.owner === identity)) return res.status(409).json({ error: 'Hai già completato questo ripasso.' });
-    ({ topic } = assignment);
+    ({ topic, area: quizArea } = assignment);
     result = { questions: assignment.quiz };
   } else {
     try {
       const { generateQuiz } = aiModule();
-      result = await generateQuiz({ topic: topic === demo.topic ? 'Rilascio CIE in Cityware' : topic, n: 3, area });
+      result = await generateQuiz({ topic: topic === demo.topic ? 'Rilascio CIE in Cityware' : topic, n: 3, area: quizArea });
     } catch {
       return res.status(503).json({ error: 'Il quiz è momentaneamente indisponibile. Riprova tra poco.' });
     }
@@ -373,7 +375,7 @@ exports.startQuiz = async (req, res) => {
   if (!Array.isArray(result?.questions) || !result.questions.length || result.questions.length > 3 || !result.questions.every(validQuestion)) {
     return res.status(503).json({ error: 'Il quiz è momentaneamente indisponibile. Riprova tra poco.' });
   }
-  const quiz = await Quiz.create({ owner: identity, sessionId: req.sessionID, assignment: assignmentId || undefined, topic, questions: result.questions });
+  const quiz = await Quiz.create({ owner: identity, sessionId: req.sessionID, assignment: assignmentId || undefined, topic, area: quizArea, questions: result.questions });
   return res.status(201).json({ id: quiz.id, topic: quiz.topic, question: publicQuestion(quiz.questions[0]), total: quiz.questions.length });
 };
 
@@ -403,7 +405,7 @@ exports.answerQuiz = async (req, res) => {
     correct: recorded.answers[index] === question.correctIndex,
     correctIndex: question.correctIndex,
     explanation: question.explanation,
-    source: sourceLink(question.source, req),
+    source: sourceLink(question.source, req, quiz.area || area),
     next: next ? publicQuestion(next) : null,
     score: next ? null : recorded.score,
   });
