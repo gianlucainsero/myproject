@@ -1,23 +1,17 @@
-# Security Policy
+# Sicurezza
 
-## Supported Versions
+Orienta è un **prototipo** nato per un hackathon, non un prodotto in produzione.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| latest  | :white_check_mark: |
-| master  | :white_check_mark: |
-| other   | :x:                |
+## Regole del progetto
 
-## Reporting a Vulnerability
+- **Nessun dato personale reale.** Usa solo dati inventati per demo e test, e non inserirne mai nell'assistente.
+- **Mai committare segreti.** Chiavi API, password e stringhe di connessione vanno nel file locale `.env.example` (nel `.gitignore`) o nelle variabili d'ambiente. `env.template` è solo un modello.
+- **L'IA si chiama solo dal server**, mai dal browser.
 
-PRIOR TO SUBMITTING SECURITY CONCERNS/REPORTS:
+## Segnalare un problema
 
-1. Research Wikipedia and other sources about hackathons to become more familiar with the potential uses of this project, the intended settings, and usage environments.
-2. Read README.md entirely, including the introduction and the steps for obtaining API keys, which includes replacing the .env values. The provided values in the .env file are placeholders, not a batch of keys exposed through GitHub.
-3. Read PROD_CHECKLIST.md. Hackathon projects are not production projects, and this checklist is to help users with their next steps to move from a prototype state to a production state.
+Apri una [issue](https://github.com/gianlucainsero/myproject/issues) nel repository, senza includere chiavi o dati sensibili. Se la segnalazione contiene informazioni riservate, contatta direttamente il team.
 
-SUBMITTING SECURITY CONCERNS/REPORTS:
+## Prima di andare in produzione
 
-1. Complete the above steps 1 to 3.
-2. If you still believe you have identified an issue, please submit it as a GitHub Issue at https://github.com/sahat/hackathon-starter/issues with the relevant information for discussion and clarification.
-   Submissions requiring registration with third-party websites will be marked/reported as spam.
+Segui [PROD_CHECKLIST.md](PROD_CHECKLIST.md): rimuovere le pagine di esempio di Hackathon Starter, configurare i cookie di sessione, aggiungere logging e una pipeline di deploy. Per problemi del framework di base: [Hackathon Starter](https://github.com/sahat/hackathon-starter/issues).
