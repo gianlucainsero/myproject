@@ -40,7 +40,7 @@ Tutte con licenza open source; l'elenco completo con le versioni è in `package.
 
 ## Immagini e identità visiva
 
-- **Logo e identità Orienta** (`public/orienta-mark.svg`, palette, tipografia, diagrammi): Mattia. Vedi [design/](design/).
+- **Logo e identità Orienta** (`public/orienta-mark.svg`, palette, tipografia, diagrammi): Mattia Altarocca. Vedi [design/](design/).
 - **Immagine illustrativa del municipio** (`public/municipio.webp`): generata con OpenAI.
 - **Microlezione CIE** (`public/cie-microlezione.mp4`, `public/cie-poster.webp`): video di 21 secondi con testo a schermo. Autore da confermare con il team.
 

@@ -145,11 +145,11 @@ npm run test:e2e:replay  # test end-to-end Playwright (fixture registrate)
 
 ## Team
 
-| Persona             | Ruolo                                                                      |
-| ------------------- | -------------------------------------------------------------------------- |
-| **Gianluca Insero** | Prodotto, strategia e pitch                                                |
-| **Mattia**          | Design, identità visiva (logo, palette, diagrammi), slide e documentazione |
-| **Flavius**         | Sviluppo della web app                                                     |
+| Persona                | Ruolo                                                                      |
+| ---------------------- | -------------------------------------------------------------------------- |
+| **Gianluca Insero**    | Prodotto, strategia e pitch                                                |
+| **Mattia Altarocca**   | Design, identità visiva (logo, palette, diagrammi), slide e documentazione |
+| **Flavius Atodiresei** | Sviluppo della web app                                                     |
 
 Gli strumenti di IA usati nello sviluppo sono dichiarati in [docs/IA.md](docs/IA.md). Le scelte di prodotto e il ragionamento sono del team.
 
