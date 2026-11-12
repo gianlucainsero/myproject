@@ -1,6 +1,8 @@
 // Prompt e schemi di risposta per l'assistente e per i quiz.
 
-const MODULE_NAMES = { demografici: 'Servizi Demografici', tutti: 'Cityware Online' };
+const { workspaces } = require('../config/orienta-areas');
+
+const MODULE_NAMES = { ...Object.fromEntries(workspaces.map(({ id, label }) => [id, label])), tutti: 'Cityware Online' };
 
 function assistantSystem(area) {
   const scope = area === 'tutti' ? 'tutti i moduli di Cityware Online' : MODULE_NAMES[area] || area;

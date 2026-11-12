@@ -32,7 +32,7 @@ Operatore → POST /api/assistant → ricerca nei manuali (BM25) → Gemini (o r
 | `data/manuali/demografici/` | 399 manuali Markdown dei Servizi Demografici → 1.749 sezioni indicizzate                                       |
 | `data/manuali/tutti/`       | Archivio completo per modulo Cityware (1.532 file) → **1.527 documenti**, 11.633 sezioni in `index-tutti.json` |
 
-L'assistente usa l'indice completo (`tutti`). Gli indici si rigenerano con `node scripts/build-index.js tutti` (o `demografici`): lo script divide i manuali in estratti con una dimensione obiettivo di 1.800 caratteri e, nell'indice completo, conserva la versione più recente quando riconosce più versioni datate dello stesso manuale.
+Il menu **Area di lavoro** imposta la ricerca e i dati della sessione. Servizi Demografici usa il suo indice. Area Economico-Finanziaria (169 documenti) e Codice della Strada (146 documenti) usano i rispettivi sottoinsiemi dell'indice completo. Gli indici si rigenerano con `node scripts/build-index.js tutti` (o `demografici`): lo script divide i manuali in estratti con una dimensione obiettivo di 1.800 caratteri e, nell'indice completo, conserva la versione più recente quando riconosce più versioni datate dello stesso manuale.
 
 ## Pagine e API
 
@@ -42,12 +42,12 @@ L'assistente usa l'indice completo (`tutti`). Gli indici si rigenerano con `node
 | `GET /benvenuto`                                    | Vista nuovo dipendente                                                    |
 | `GET /formazione/cie`                               | Microlezione CIE (video + quiz)                                           |
 | `GET /assistente`                                   | Chat con l'assistente                                                     |
-| `GET /quiz`, `GET /ripasso/:id`                     | Quiz e ripassi assegnati                                                  |
+| `GET /quiz`, `GET /ripasso/:id`                     | Quiz, microlezioni testuali e ripassi assegnati                           |
 | `GET /manuali/:id`                                  | Fonte citata dall'assistente                                              |
 | `GET /palitalsoft`                                  | Cruscotto dei formatori                                                   |
 | `POST /api/assistant`, `/api/assistant/resolve`     | Domanda all'assistente; chiusura con «Mi è servito»                       |
 | `POST /api/tickets`, `/palitalsoft/ticket/stato`    | Conferma della bozza di ticket; avanzamento (aperto → in carico → chiuso) |
-| `POST /api/quiz`, `/api/quiz/attempt`               | Genera il quiz; registra le risposte                                      |
+| `POST /api/quiz`, `/api/quiz/attempt`               | Avvia o riprende il quiz e registra le risposte                           |
 | `POST /api/assignments/preview`, `/api/assignments` | Anteprima e assegnazione del ripasso                                      |
 | `POST /palitalsoft/ripristina`                      | Ripristina la demo                                                        |
 

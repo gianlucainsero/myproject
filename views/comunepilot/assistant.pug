@@ -5,7 +5,7 @@ block content
   - const levels = [{ label: 'Risposta diretta', icon: 'fa-circle-check', description: 'I passi da fare e il manuale da cui li ho presi.' }, { label: 'Ti guido io', icon: 'fa-list-check', description: 'Ti chiedo il dettaglio che serve per scegliere i passaggi.' }, { label: 'Ticket assistenza', icon: 'fa-ticket', description: 'Preparo la richiesta. La confermi tu nella coda simulata.' }];
   header.cp-page-intro
     h1 Assistente
-    p Chiedi una procedura di Cityware Online o descrivi un problema operativo.
+    p= workspace.label + ' · Chiedi una procedura di Cityware Online o descrivi un problema operativo.'
   section.cp-card.cp-chat(aria-label='Conversazione con l’assistente')
     header.cp-chat-header
       .cp-feature-icon
@@ -14,27 +14,24 @@ block content
         h2= `Assistente ${productName}`
         p= assistantMode
       button#new-case.cp-btn.cp-btn-outline(type='button', hidden) Nuova domanda
-    ol.cp-stepper(aria-label='Livello di aiuto')
-      each level, index in levels
-        li.cp-step(class=`level-${index + 1}`, data-assistant-level=index + 1, data-label=level.label, data-icon=level.icon)
-          span.cp-step-number(aria-hidden='true')= index + 1
-          span.cp-step-copy
-            span= level.label
-            span.cp-step-description= level.description
-          span.cp-step-current(aria-hidden='true') Attivo
+    details#assistant-levels.cp-level-help(open)
+      summary Come funziona l’assistente
+      ol.cp-stepper(aria-label='Livelli di assistenza')
+        each level, index in levels
+          li.cp-step(class=`level-${index + 1}`, data-assistant-level=index + 1, data-label=level.label, data-icon=level.icon)
+            span.cp-step-number(aria-hidden='true')= index + 1
+            span.cp-step-copy
+              span= level.label
+              span.cp-step-description= level.description
+            span.cp-step-current(aria-hidden='true') Attivo
     #messages.cp-messages(role='log', aria-live='polite', aria-relevant='additions text')
       #empty-chat.cp-empty-chat
         h3 Come posso aiutarti?
         .cp-prompts
-          button(type='button', data-prompt='Come preparo il Rilascio CIE in Gestione Carte d’identità in Cityware?')
-            i.fa-solid.fa-id-card(aria-hidden='true')
-            span Come rilascio una carta d’identità?
-          button(type='button', data-prompt='Devo aprire una tornata elettorale. Quale procedura seguo?')
-            i.fa-solid.fa-check-to-slot(aria-hidden='true')
-            span Devo aprire una tornata elettorale. Quale procedura seguo?
-          button(type='button', data-prompt='Stampa Liste Sezionali: errore nella funzione di stampa 322, anche con un testo cwd corretto. L’ufficio è bloccato e la consegna è oggi.')
-            i.fa-solid.fa-print(aria-hidden='true')
-            span La stampa delle liste sezionali è bloccata.
+          each prompt in prompts
+            button(type='button', data-prompt=prompt.message || prompt.label)
+              i.fa-solid(class=prompt.icon, aria-hidden='true')
+              span= prompt.label
     p#chat-error.cp-form-error(role='alert', hidden)
     form#chat-form.cp-composer
       label.visually-hidden(for='chat-input') Scrivi una domanda
@@ -43,15 +40,23 @@ block content
         | Invia
         i.fa-solid.fa-arrow-up(aria-hidden='true')
     p.cp-chat-note Usa dati di esempio e ometti i dati personali.
+  dialog#reset-chat.cp-card.cp-chat-dialog(aria-labelledby='reset-chat-title', aria-describedby='reset-chat-description')
+    h2#reset-chat-title Iniziare una nuova domanda?
+    p#reset-chat-description Questa conversazione e l’eventuale bozza verranno rimosse dalla schermata.
+    form.cp-study-actions(method='dialog')
+      button.cp-btn.cp-btn-outline(value='continue', autofocus) Continua la conversazione
+      button.cp-btn.cp-btn-primary(value='reset') Inizia una nuova domanda
   template#ticket-template
     form.cp-ticket-form
       .cp-ticket
         header.cp-ticket-heading
-          h3 Bozza ticket
+          h3(tabindex='-1') Bozza ticket
           span(data-ticket-module)
         dl.cp-ticket-preview
           dt Oggetto
           dd(data-ticket-summary)
+          dt Descrizione
+          dd(data-ticket-description)
           dt Tipo
           dd
             span.cp-type-tag(data-ticket-type)
@@ -59,9 +64,13 @@ block content
               span(data-ticket-type-label)
           dt Priorità
           dd(data-ticket-priority)
+          dt Impatto
+          dd(data-ticket-impact)
+          dt Urgenza
+          dd(data-ticket-urgency)
           dt Cosa hai provato
           dd(data-ticket-attempts)
-        .cp-ticket-editor(hidden)
+        #ticket-editor.cp-ticket-editor(hidden)
           label
             | Oggetto
             input(name='summary', required, maxlength='140')
@@ -96,7 +105,7 @@ block content
         button.cp-btn.cp-btn-ticket(type='submit')
           i.fa-solid.fa-paper-plane(aria-hidden='true')
           | Invia il ticket
-        button.cp-btn.cp-btn-outline(type='button', data-ticket-edit) Modifica
+        button.cp-btn.cp-btn-outline(type='button', data-ticket-edit, aria-controls='ticket-editor') Modifica
       p.cp-ticket-note(role='status') Invio nella coda simulata.
       p.cp-form-error(role='alert', hidden)
 

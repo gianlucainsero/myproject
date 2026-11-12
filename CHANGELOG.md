@@ -2,6 +2,12 @@
 
 Il registro delle modifiche di Hackathon Starter è in [docs/CHANGELOG-hackathon-starter.md](docs/CHANGELOG-hackathon-starter.md).
 
+## In sviluppo
+
+- Selettore per Servizi Demografici, Area Economico-Finanziaria e Codice della Strada. Ogni area ha manuali, quiz, ripassi e coda ticket dedicati.
+- Quattro microlezioni testuali con quiz e fonti. Il quiz riparte dalla prima domanda senza risposta quando si ricarica la stessa scheda.
+- Anteprime più leggibili per ticket e ripassi, con la coda utilizzabile anche su schermi stretti.
+
 ## 0.1.0 · 12/11/2026 · Prototipo per l'hackathon Palitalsoft × Unicam
 
 - Assistente a tre livelli (risposta diretta, guida, ticket), con fonti dai manuali e modalità di riserva.

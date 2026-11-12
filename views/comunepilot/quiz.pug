@@ -1,11 +1,10 @@
 extends layout
 
 block content
-  a.cp-back(href='/formazione/cie')
+  a.cp-back(href=back.href)
     i.fa-solid.fa-arrow-left(aria-hidden='true')
-    | Torna alla lezione
+    = back.label
   header.cp-page-intro
-    span.cp-eyebrow Verifica delle competenze
     h1 Mini-quiz
     p= topic
   include quiz-content.pug

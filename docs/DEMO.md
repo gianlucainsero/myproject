@@ -6,7 +6,7 @@ Durata: circa 4 minuti. Operatrice di esempio: **Laura**, Comune di **Vallechiar
 
 1. Avvia MongoDB e `npm start`.
 2. Scegli la modalità IA: con `GEMINI_API_KEY` risponde Gemini; per una demo senza rete avvia con `AI_MOCK=1`.
-3. In fondo a `/palitalsoft` premi **Ripristina demo**.
+3. Nel menu **Area di lavoro** scegli **Servizi Demografici**. In fondo al cruscotto premi **Ripristina questa area**.
 
 ## Scaletta
 
@@ -22,10 +22,10 @@ Durata: circa 4 minuti. Operatrice di esempio: **Laura**, Comune di **Vallechiar
 | 8   | Home           | Banner teal «Nuovo ripasso da Palitalsoft» → lezione e quiz             | Ripasso completato                                                                       |
 | 9   | `/palitalsoft` | **Ripassi assegnati**                                                   | Completamento e punteggio: il ciclo è chiuso                                             |
 
-**Extra:** «Vista nuovo dipendente» (primo accesso) dalla home. Per mostrare i moduli oltre i Servizi Demografici: «Come faccio il calcolo degli avvisi bonari TARI?» o «Come protocollo un documento in arrivo?».
+**Extra:** apri **Guida al primo accesso** dalla home. Per mostrare l'Area Economico-Finanziaria, scegli l'area nel menu e prova la domanda suggerita sugli atti di liquidazione. Nel Codice della Strada puoi provare l'inserimento di un verbale. Ogni area ha microlezioni, quiz e coda ticket dedicati.
 
 ## Se qualcosa va storto
 
 - Gemini lento o senza risposta: l'app passa da sola alla modalità di riserva.
-- Stato sporco dopo una prova: **Ripristina demo** rimuove le attività della sessione corrente.
+- Stato sporco dopo una prova: **Ripristina questa area** rimuove le attività della sessione per l'area selezionata.
 - Verifica rapida dell'IA: `node scripts/test-ai.js` (modalità, tempi, fonti e livelli delle cinque domande).

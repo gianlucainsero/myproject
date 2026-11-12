@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { tokenize, expandQuery } = require('./text');
+const { findWorkspace } = require('../config/orienta-areas');
 
 const K1 = 1.4;
 const B = 0.75;
@@ -10,11 +11,29 @@ const HEADING_BOOST = 2;
 
 const cache = new Map();
 
-function loadIndex(area) {
-  if (cache.has(area)) return cache.get(area);
+let sharedIndex;
+
+function readIndex(area) {
   const file = path.join(__dirname, '..', 'data', `index-${area}.json`);
   if (!fs.existsSync(file)) throw new Error(`Indice mancante: ${file}. Esegui: node scripts/build-index.js ${area}`);
-  const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
+function rawIndex(area) {
+  const moduleName = findWorkspace(area)?.indexModule;
+  if (area === 'tutti' || moduleName) sharedIndex ??= readIndex('tutti');
+  if (!moduleName) return area === 'tutti' ? sharedIndex : readIndex(area);
+
+  const sourceDocs = sharedIndex.docs.filter((doc) => doc.module === moduleName);
+  const positions = new Map(sourceDocs.map((doc, position) => [doc.id, position]));
+  const docs = sourceDocs.map((doc, id) => ({ ...doc, id }));
+  const chunks = sharedIndex.chunks.filter((chunk) => positions.has(chunk.doc)).map((chunk) => ({ ...chunk, doc: positions.get(chunk.doc) }));
+  return { area, builtAt: sharedIndex.builtAt, docs, chunks };
+}
+
+function loadIndex(area) {
+  if (cache.has(area)) return cache.get(area);
+  const raw = rawIndex(area);
 
   const df = new Map();
   const items = raw.chunks.map((c) => {
@@ -25,7 +44,9 @@ function loadIndex(area) {
     add(tokenize(doc.title), TITLE_BOOST);
     add(tokenize(c.heading || ''), HEADING_BOOST);
     let len = 0;
-    tf.forEach((v) => { len += v; });
+    tf.forEach((v) => {
+      len += v;
+    });
     tf.forEach((_, t) => df.set(t, (df.get(t) || 0) + 1));
     return { chunk: c, doc, tf, len };
   });

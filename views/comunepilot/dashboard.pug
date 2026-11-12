@@ -2,10 +2,22 @@ extends layout
 
 block content
   include ticket-icons
+  mixin filterChip(item)
+    a.cp-filter-chip(href=workspaceHref('/palitalsoft#coda', item.value ? { tipo: item.value } : {}), aria-current=filter === item.value ? 'true' : undefined)
+      = item.count ? `${item.label} · ${item.count}` : item.label
+  mixin rankedTopic(item, index)
+    li
+      .cp-ranked-content
+        .cp-ranked-label
+          strong= item.label
+          span= item.count
+        progress.cp-progress(class=index === 0 ? 'cp-progress-warn' : '', value=item.count, max=requestedTopics[0].count, aria-label=item.label)
+        if item.simulated
+          span.cp-sample-mark= item.session ? `${item.session} dalla sessione · ${item.simulated} simulati` : 'Dati simulati'
+      button.cp-btn.cp-btn-outline.cp-create-review(type='button', data-topic=item.label, data-origin='difficoltà', aria-label=`Crea ripasso per ${item.label}`) Crea ripasso
   header.cp-page-intro
-    span.cp-eyebrow Spazio formatore
     h1 Cruscotto Palitalsoft
-    p Servizi Demografici · Attività della sessione demo
+    p= workspace.label + ' · Attività della sessione demo'
   if demoReset
     p.cp-feedback.cp-feedback-success(role='status') Demo ripristinata.
   section.cp-metrics(aria-label='Indicatori della sessione e dati simulati')
@@ -20,7 +32,7 @@ block content
   p.cp-dashboard-note Dati della sessione e dati simulati inclusi negli indicatori.
 
   section#assignment-preview.cp-card.cp-document(aria-labelledby='preview-title', hidden)
-    h2#preview-title Anteprima del ripasso
+    h2#preview-title(tabindex='-1') Anteprima del ripasso
     p#assignment-status(role='status')
     p#assignment-error.cp-form-error(role='alert', hidden)
     #assignment-content
@@ -35,63 +47,69 @@ block content
       if ticketUpdate
         p.cp-feedback.cp-feedback-success(role='status')= ticketUpdate
       nav.cp-ticket-filters(aria-label='Filtra per tipo')
-        each item in filters
-          a.cp-filter-chip(href=item.value ? `/palitalsoft?tipo=${encodeURIComponent(item.value)}#coda` : '/palitalsoft#coda', aria-current=filter === item.value ? 'true' : undefined)
-            = item.count ? `${item.label} · ${item.count}` : item.label
+        +filterChip(filters[0])
+        .cp-filter-types(role='group', aria-label='Tipi di richiesta')
+          each item in filters.slice(1)
+            +filterChip(item)
       if tickets.length
-        .table-responsive
-          table.cp-table
-            thead
-              tr
-                th(scope='col') Richiesta
-                th(scope='col') Comune
-                th(scope='col') Tipo
-                th(scope='col') Priorità
-                th(scope='col') Stato
-            tbody
-              each ticket in tickets
-                - const state = ticketStatuses[ticket.status];
-                tr
-                  td
-                    if ticket.example
-                      strong= ticket.summary
-                    else
-                      details
-                        summary= ticket.summary
-                        p= ticket.description
-                        if ticket.urgency
-                          p= `Urgenza: ${ticket.urgency}`
-                        if ticket.stepsTried && ticket.stepsTried.length
-                          ul
-                            each attempt in ticket.stepsTried
-                              li= attempt
-                    if ticket.aiSummary
-                      .cp-ai-summary
-                        span IA
-                        p= ticket.aiSummary
-                    if ticket.example
-                      span.cp-sample-mark Dati simulati
-                    else
-                      span.cp-table-note Richiesta ##{ String(ticket._id).slice(-6).toUpperCase() }
-                  td= ticket.municipality
-                  td
-                    span.cp-type-tag(class=`type-${ticket.type}`)
-                      i.fa-solid(class=ticketIcons[ticket.type], aria-hidden='true')
-                      = ticketTypes[ticket.type]
-                  td
-                    span.cp-priority-tag(class=`priority-${ticket.priority}`)= ticket.priority
-                  td
-                    .cp-ticket-controls
-                      span.cp-ticket-status(class=`status-${ticket.status}`)
-                        i.fa-solid(class=state.icon, aria-hidden='true')
-                        = state.label
-                      if state.next
-                        form(action='/palitalsoft/ticket/stato', method='post')
-                          input(type='hidden', name='_csrf', value=_csrf)
-                          input(type='hidden', name='ticketId', value=ticket._id)
-                          input(type='hidden', name='status', value=state.next)
-                          input(type='hidden', name='tipo', value=filter)
-                          button.cp-btn.cp-ticket-action(type='submit', class=state.next === 'chiuso' ? 'cp-btn-secondary' : 'cp-btn-outline', aria-label=`${state.action} per ${ticket.summary}`)= state.action
+        table.cp-table(role='table', aria-label='Ticket in coda')
+          thead(role='rowgroup')
+            tr(role='row')
+              th(scope='col', role='columnheader') Richiesta
+              th(scope='col', role='columnheader') Comune
+              th(scope='col', role='columnheader') Tipo
+              th(scope='col', role='columnheader') Priorità
+              th(scope='col', role='columnheader') Stato
+          tbody(role='rowgroup')
+            each ticket in tickets
+              - const state = ticketStatuses[ticket.status];
+              tr(role='row')
+                td.cp-ticket-request(role='cell')
+                  if ticket.example
+                    strong= ticket.summary
+                  else
+                    details
+                      summary= ticket.summary
+                      p= ticket.description
+                      if ticket.urgency
+                        p= `Urgenza: ${ticket.urgency}`
+                      if ticket.stepsTried && ticket.stepsTried.length
+                        ul
+                          each attempt in ticket.stepsTried
+                            li= attempt
+                  if ticket.aiSummary
+                    .cp-ai-summary
+                      span IA
+                      p= ticket.aiSummary
+                  if ticket.example
+                    span.cp-sample-mark Dati simulati
+                  else
+                    span.cp-table-note Richiesta ##{ String(ticket._id).slice(-6).toUpperCase() }
+                td(role='cell')
+                  span.cp-cell-label(aria-hidden='true') Comune
+                  = ticket.municipality
+                td(role='cell')
+                  span.cp-cell-label(aria-hidden='true') Tipo
+                  span.cp-type-tag(class=`type-${ticket.type}`)
+                    i.fa-solid(class=ticketIcons[ticket.type], aria-hidden='true')
+                    = ticketTypes[ticket.type]
+                td(role='cell')
+                  span.cp-cell-label(aria-hidden='true') Priorità
+                  span.cp-priority-tag(class=`priority-${ticket.priority}`)= ticket.priority
+                td.cp-ticket-state(role='cell')
+                  span.cp-cell-label(aria-hidden='true') Stato
+                  .cp-ticket-controls
+                    span.cp-ticket-status(class=`status-${ticket.status}`)
+                      i.fa-solid(class=state.icon, aria-hidden='true')
+                      = state.label
+                    if state.next
+                      form(action='/palitalsoft/ticket/stato', method='post')
+                        input(type='hidden', name='_csrf', value=_csrf)
+                        input(type='hidden', name='area', value=workspace.id)
+                        input(type='hidden', name='ticketId', value=ticket._id)
+                        input(type='hidden', name='status', value=state.next)
+                        input(type='hidden', name='tipo', value=filter)
+                        button.cp-btn.cp-ticket-action(type='submit', class=state.next === 'chiuso' ? 'cp-btn-secondary' : 'cp-btn-outline', aria-label=`${state.action} per ${ticket.summary}`)= state.action
       else
         p Nessun ticket per il tipo selezionato.
 
@@ -116,16 +134,14 @@ block content
         h2#map-title Mappa delle difficoltà
         p Argomenti più chiesti all’assistente.
         ul.cp-ranked-list
-          each item, index in requestedTopics
-            li
-              .cp-ranked-content
-                .cp-ranked-label
-                  strong= item.label
-                  span= item.count
-                progress.cp-progress(class=index === 0 ? 'cp-progress-warn' : '', value=item.count, max=requestedTopics[0].count, aria-label=item.label)
-                if item.simulated
-                  span.cp-sample-mark= item.session ? `${item.session} dalla sessione · ${item.simulated} simulati` : 'Dati simulati'
-              button.cp-btn.cp-btn-outline.cp-create-review(type='button', data-topic=item.label, data-origin='difficoltà') Crea ripasso
+          each item, index in requestedTopics.slice(0, 3)
+            +rankedTopic(item, index)
+        if requestedTopics.length > 3
+          details.cp-more-topics
+            summary= 'Altri argomenti (' + (requestedTopics.length - 3) + ')'
+            ul.cp-ranked-list
+              each item, index in requestedTopics.slice(3)
+                +rankedTopic(item, index + 3)
         if difficulty
           p
             strong Errore più frequente nei quiz
@@ -145,6 +161,8 @@ block content
       section.cp-card.cp-document(aria-labelledby='gaps-title')
         h2#gaps-title Lacune nei manuali
         p Domande per cui l’assistente ha segnalato informazioni insufficienti.
+        if !manualGaps.length
+          p Nessuna lacuna segnalata in questa area.
         ul.cp-ranked-list
           each gap in manualGaps
             li
@@ -154,11 +172,12 @@ block content
                   span.cp-gap-count= gap.count
                 if gap.simulated
                   span.cp-sample-mark= gap.session ? `${gap.session} dalla sessione · ${gap.simulated} simulati` : 'Dati simulati'
-              button.cp-btn.cp-btn-outline.cp-create-review(type='button', data-topic=gap.label, data-origin='lacuna') Crea ripasso
+              button.cp-btn.cp-btn-outline.cp-create-review(type='button', data-topic=gap.label, data-origin='lacuna', aria-label=`Crea ripasso per la lacuna ${gap.label}`) Crea ripasso
 
   form#reset-demo.cp-study-actions.cp-dashboard-footer(action='/palitalsoft/ripristina', method='post')
     input(type='hidden', name='_csrf', value=_csrf)
-    button.cp-btn.cp-btn-outline(type='submit') Ripristina demo
+    input(type='hidden', name='area', value=workspace.id)
+    button.cp-btn.cp-btn-outline(type='submit') Ripristina questa area
     span#reset-status(role='status')
 
 block scripts

@@ -26,9 +26,16 @@ Formazione → dubbio → Assistente (3 livelli) → risolto, oppure ticket clas
      └────────── nuovo ripasso ← Cruscotto Palitalsoft ←──────┘
 ```
 
+## Aree di lavoro
+
+Nel menu **Area di lavoro** puoi passare tra Servizi Demografici, Area Economico-Finanziaria e Codice della Strada. La selezione determina i manuali dell'assistente, le microlezioni, i quiz e i dati del cruscotto.
+
+- **Area Economico-Finanziaria:** atti di liquidazione e accertamenti PagoPA.
+- **Codice della Strada:** inserimento verbali e gestione ricorsi.
+
 ## Screenshot
 
-Schermate di riferimento della demo.
+Schermate di riferimento della demo nei Servizi Demografici.
 
 | Home dell'operatrice                | Assistente (livello 1)                          | Cruscotto Palitalsoft                         |
 | ----------------------------------- | ----------------------------------------------- | --------------------------------------------- |
@@ -44,7 +51,7 @@ Schermate di riferimento della demo.
 
 ## Funzionalità
 
-**Per l'operatore** · percorso formativo e competenze per area · microlezione CIE con video e quiz · ripassi assegnati da Palitalsoft · assistente con fonti consultabili · «Vista nuovo dipendente» per il primo accesso.
+**Per l'operatore** · percorso formativo e competenze per area · microlezione CIE con video e quiz · ripassi assegnati da Palitalsoft · assistente con fonti consultabili · «Guida al primo accesso» in home.
 
 **Per Palitalsoft** (`/palitalsoft`) · indicatori (ticket evitati, risolte al livello 1, competenza media, ticket in coda) · coda ticket per priorità con presa in carico e chiusura · mappa delle difficoltà e lacune nei manuali · **Crea ripasso**: anteprima generata dai manuali, poi assegnazione · completamento e punteggio dei ripassi assegnati.
 
@@ -59,7 +66,7 @@ Schermate di riferimento della demo.
 5. **Cruscotto `/palitalsoft`**: coda ticket, mappa delle difficoltà, lacune nei manuali. **Crea ripasso** su «Apertura operazioni elettorali» → anteprima → **Assegna**.
 6. **Ritorno alla home**: banner «Nuovo ripasso da Palitalsoft» → lezione e quiz → il cruscotto mostra completamento e punteggio. Il ciclo è chiuso.
 
-Prima di ogni demo usa **Ripristina demo** in fondo al cruscotto. Dettagli in [docs/DEMO.md](docs/DEMO.md).
+Prima di ogni demo seleziona l'area da mostrare e usa **Ripristina questa area** in fondo al cruscotto. Dettagli in [docs/DEMO.md](docs/DEMO.md).
 
 ## Avvio rapido
 
@@ -93,7 +100,7 @@ Apri [localhost:8080](http://localhost:8080). `app.js` carica la configurazione 
 | ------------------ | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | **Gemini**         | `GEMINI_API_KEY` impostata                              | Risposte, microlezioni e quiz generati a partire dagli estratti dei manuali.                                            |
 | **Riserva**        | Chiave assente, `AI_MOCK=1`, oppure Gemini non risponde | Risposte costruite dai manuali disponibili. Se serve un chiarimento, l'assistente propone le scelte o indica la lacuna. |
-| **Demo scriptata** | `COMUNEPILOT_LIVE_AI=false`                             | Contenuti predefiniti per i tre scenari.                                                                                |
+| **Demo scriptata** | `COMUNEPILOT_LIVE_AI=false`                             | Scenari predefiniti nei Servizi Demografici. Nelle altre aree l'assistente usa la riserva sui manuali dell'area.        |
 
 Su PowerShell puoi forzare la riserva con `$env:AI_MOCK='1'; npm start`. Il template imposta `gemini-3.5-flash`. Se ometti `GEMINI_MODEL`, il codice usa `gemini-2.5-flash`. Con `node scripts/test-ai.js` puoi verificare modalità, tempi, fonti e livelli degli scenari, oltre a un quiz e una microlezione.
 

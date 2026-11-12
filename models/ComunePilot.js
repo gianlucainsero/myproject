@@ -22,6 +22,7 @@ const caseSchema = new mongoose.Schema(
   {
     owner: { type: String, required: true, index: true },
     sessionId: String,
+    area: String,
     topic: String,
     module: String,
     level: Number,
@@ -38,6 +39,7 @@ const ticketProgressSchema = new mongoose.Schema({
   _id: String,
   owner: { type: String, required: true },
   sessionId: { type: String, required: true },
+  area: String,
   ticketId: { type: String, required: true },
   status: { type: String, enum: ['in_carico', 'chiuso'], required: true },
 });

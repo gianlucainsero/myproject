@@ -4,12 +4,12 @@ Dichiarazione richiesta dal regolamento dell'hackathon.
 
 ## IA dentro l'app
 
-| Cosa              | Dettaglio                                                                                                                                                                                                                    |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Fornitore**     | Google Gemini, tramite API REST chiamata **solo dal server**                                                                                                                                                                 |
-| **Modello**       | `gemini-3.5-flash` per risposte dell'assistente, microlezioni e quiz; `gemini-3.5-flash-lite` come alternativa più veloce ed economica. Si sceglie con `GEMINI_MODEL`; se non è impostata, il codice usa `gemini-2.5-flash`. |
-| **Dati usati**    | Gemini riceve la domanda, la cronologia recente e gli estratti recuperati dai manuali Palitalsoft (oltre 1.500 documenti indicizzati). L'assistente mostra le fonti quando ne ha utilizzate.                                 |
-| **Addestramento** | Nessuno: il modello non viene addestrato né rifinito.                                                                                                                                                                        |
+| Cosa              | Dettaglio                                                                                                                                                                                                                        |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Fornitore**     | Google Gemini, tramite API REST chiamata **solo dal server**                                                                                                                                                                     |
+| **Modello**       | `gemini-3.5-flash` per risposte dell'assistente, microlezioni e quiz; `gemini-3.5-flash-lite` come alternativa più veloce ed economica. Si sceglie con `GEMINI_MODEL`; se non è impostata, il codice usa `gemini-2.5-flash`.     |
+| **Dati usati**    | Gemini riceve la domanda, la cronologia recente e gli estratti recuperati dai manuali Palitalsoft dell'area selezionata. L'indice completo contiene oltre 1.500 documenti. L'assistente mostra le fonti quando ne ha utilizzate. |
+| **Addestramento** | Nessuno: il modello non viene addestrato né rifinito.                                                                                                                                                                            |
 
 ## Limiti
 

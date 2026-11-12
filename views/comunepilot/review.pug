@@ -2,24 +2,31 @@ extends layout
 
 block content
   mixin richText(value)
-    each part, index in value.split(/\*\*([^*\n]+)\*\*/)
-      if index % 2
-        strong= part
-      else
+    each part, index in value.split(/(\*\*[^*\n]+\*\*|\*[^*\n]+\*)/)
+      if index % 2 === 0
         = part
-  a.cp-back(href='/')
+      else if part.startsWith('**')
+        strong= part.slice(2, -2)
+      else
+        em= part.slice(1, -1)
+  a.cp-back(href=workspaceHref('/'))
     i.fa-solid.fa-arrow-left(aria-hidden='true')
     | Torna al percorso
   header.cp-page-intro
-    span.cp-eyebrow Ripasso assegnato da Palitalsoft
     h1= lesson.title
-    p= lesson.intro
+    p= courseQuizUrl ? workspace.label + ' · ' + lesson.intro : lesson.intro
+    if !courseQuizUrl
+      p Ripasso assegnato da Palitalsoft
   article.cp-card.cp-document
-    h2 Punti chiave
-    ul
-      each point in lesson.keyPoints
-        li
-          +richText(point)
+    if lesson.path
+      h2 Dove trovare la funzione
+      p.cp-breadcrumb-path= lesson.path
+    if lesson.keyPoints && lesson.keyPoints.length
+      h2 Punti chiave
+      ul
+        each point in lesson.keyPoints
+          li
+            +richText(point)
     if lesson.steps.length
       h2 Passi in Cityware Online
       ol.cp-steps
@@ -34,9 +41,13 @@ block content
             a.cp-source(href=source.url)= source.title
           else
             span.cp-source= source.title
+    if courseQuizUrl
+      .cp-study-actions
+        a.cp-btn.cp-btn-secondary(href=courseQuizUrl) Inizia il mini-quiz
+        a.cp-text-link(href=workspaceHref('/assistente')) Chiedi all’assistente
   if completion
     p.cp-feedback.cp-feedback-success= 'Ripasso completato · ' + completion.score + ' su ' + completion.total + ' risposte corrette'
-  else
+  else if assignmentId
     include quiz-content.pug
 
 block scripts
