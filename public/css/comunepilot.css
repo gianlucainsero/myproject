@@ -1261,6 +1261,36 @@ a.cp-source:hover {
   color: var(--cp-level-2-ink);
   background: var(--cp-level-2-tint);
 }
+.cp-ticket-controls {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+.cp-ticket-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--cp-pale);
+  color: var(--cp-blue-deep);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.cp-ticket-status.status-in_carico {
+  background: var(--cp-level-2-tint);
+  color: var(--cp-level-2-ink);
+}
+.cp-ticket-status.status-chiuso {
+  background: var(--cp-level-1-tint);
+  color: var(--cp-level-1-ink);
+}
+.cp-ticket-action {
+  padding-inline: 9px;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
 .cp-ranked-list {
   margin: 0;
   padding: 0;
