@@ -2,7 +2,7 @@ extends layout
 
 block content
   include ticket-icons
-  - const levels = [{ label: 'Risposta diretta', icon: 'fa-circle-check', description: 'I passi da fare e il manuale da cui li ho presi.' }, { label: 'Ti guido io', icon: 'fa-list-check', description: 'Ti faccio qualche domanda e ti preparo una checklist.' }, { label: 'Ticket assistenza', icon: 'fa-ticket', description: 'Preparo la richiesta. La confermi tu nella coda simulata.' }];
+  - const levels = [{ label: 'Risposta diretta', icon: 'fa-circle-check', description: 'I passi da fare e il manuale da cui li ho presi.' }, { label: 'Ti guido io', icon: 'fa-list-check', description: 'Ti chiedo il dettaglio che serve per scegliere i passaggi.' }, { label: 'Ticket assistenza', icon: 'fa-ticket', description: 'Preparo la richiesta. La confermi tu nella coda simulata.' }];
   header.cp-page-intro
     h1 Assistente
     p Chiedi una procedura di Cityware Online o descrivi un problema operativo.
@@ -29,9 +29,9 @@ block content
           button(type='button', data-prompt='Come preparo il Rilascio CIE in Gestione Carte d’identità in Cityware?')
             i.fa-solid.fa-id-card(aria-hidden='true')
             span Come rilascio una carta d’identità?
-          button(type='button', data-prompt='Elezioni amministrative: devo aprire una nuova tornata in Cityware, da dove partire?')
+          button(type='button', data-prompt='Devo aprire una tornata elettorale. Quale procedura seguo?')
             i.fa-solid.fa-check-to-slot(aria-hidden='true')
-            span Da dove parto per aprire la tornata elettorale?
+            span Devo aprire una tornata elettorale. Quale procedura seguo?
           button(type='button', data-prompt='Stampa Liste Sezionali: errore nella funzione di stampa 322, anche con un testo cwd corretto. L’ufficio è bloccato e la consegna è oggi.')
             i.fa-solid.fa-print(aria-hidden='true')
             span La stampa delle liste sezionali è bloccata.
