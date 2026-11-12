@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const ai = require('../ai');
+const { cleanLesson, cleanLessonText } = require('../ai/lesson-text');
 const { loadIndex } = require('../ai/search');
-const { Assignment, Case, Quiz } = require('../models/ComunePilot');
+const { Assignment, Case, Quiz, TicketProgress } = require('../models/ComunePilot');
 const demo = require('./comunepilot-demo');
 
 const area = 'demografici';
@@ -14,6 +15,12 @@ const ticketTypes = { bug: 'Bug', configurazione: 'Configurazione', formazione: 
 const urgencyLabels = { oggi: 'Entro oggi', presto: 'A breve', nessuna: 'Nessuna scadenza' };
 const impactLabels = { ufficio: 'Ufficio bloccato', operatore: 'Singolo operatore', limitato: 'Limitato' };
 const priorities = { alta: 0, media: 1, bassa: 2 };
+const ticketStatuses = {
+  aperto: { label: 'Aperto', icon: 'fa-inbox', next: 'in_carico', action: 'Prendi in carico' },
+  in_carico: { label: 'In carico', icon: 'fa-user-check', next: 'chiuso', action: 'Chiudi ticket' },
+  chiuso: { label: 'Chiuso', icon: 'fa-circle-check' },
+};
+const ticketFilter = (value) => (typeof value === 'string' && Object.hasOwn(ticketTypes, value) ? value : '');
 
 const text = (value, limit) => (typeof value === 'string' ? value.trim().slice(0, limit) : '');
 const trainingTopic = (topic) => (/^(?:gestione )?carte d['’]identità$/i.test(topic) ? demo.topic : topic);
@@ -73,7 +80,8 @@ exports.home = async (req, res) => {
   ]);
   const { completedReview } = req.session;
   delete req.session.completedReview;
-  res.render('comunepilot/home', { ...locals('home', 'Il mio percorso'), latest, assignment, completedReview });
+  const pending = assignment && { id: assignment._id, title: cleanLessonText(assignment.lesson.title) };
+  res.render('comunepilot/home', { ...locals('home', 'Il mio percorso'), latest, assignment: pending, completedReview });
 };
 
 exports.lesson = async (req, res) => {
@@ -81,7 +89,7 @@ exports.lesson = async (req, res) => {
 };
 
 exports.welcome = (req, res) => {
-  res.render('comunepilot/welcome', locals('home', 'Primo accesso'));
+  res.render('comunepilot/welcome', locals('welcome', 'Primo accesso'));
 };
 
 exports.assistant = (req, res) => {
@@ -99,7 +107,8 @@ exports.review = async (req, res) => {
   const identity = owner(req);
   const assignment = validId(req.params.id) ? await Assignment.findById(req.params.id).lean() : null;
   if (!assignment) return res.status(404).send('Ripasso non disponibile.');
-  const { lesson, topic, _id, completions } = assignment;
+  const { topic, _id, completions } = assignment;
+  const lesson = cleanLesson(assignment.lesson);
   const sources = lesson.sources.map((source) => sourceLink(source, req));
   const completion = completions.find((entry) => entry.owner === identity);
   res.render('comunepilot/review', { ...locals('home', lesson.title), lesson, sources, completion, topic, assignmentId: _id.toString() });
@@ -136,15 +145,17 @@ function rankDashboardRows(values, examples) {
 
 exports.dashboard = async (req, res) => {
   const identity = owner(req);
-  const { demoReset } = req.session;
+  const { demoReset, ticketUpdate } = req.session;
   delete req.session.demoReset;
+  delete req.session.ticketUpdate;
   const { dashboardExample: example } = demo;
-  const [cases, quizzes, assignments] = await Promise.all([
+  const [cases, quizzes, assignments, ticketProgress] = await Promise.all([
     Case.find({ owner: identity }).select('topic level resolvedAt ticket draft.description manualGaps').lean(),
     Quiz.find({ owner: identity, completedAt: { $exists: true }, assignment: { $exists: false } })
       .select('topic questions answers score')
       .lean(),
     Assignment.find().sort({ createdAt: -1 }).select('topic lesson.title target completions.score completions.total').lean(),
+    TicketProgress.find({ owner: identity, sessionId: req.sessionID }).select('ticketId status').lean(),
   ]);
   const resolved = cases.filter((entry) => entry.resolvedAt && !entry.ticket);
   const closed = cases.filter((entry) => entry.resolvedAt || entry.ticket).length;
@@ -170,18 +181,22 @@ exports.dashboard = async (req, res) => {
   const completions = assignments.flatMap((assignment) => assignment.completions);
   const questionCount = quizzes.reduce((total, quiz) => total + quiz.questions.length, 0) + completions.reduce((total, entry) => total + entry.total, 0);
   const quizCorrect = quizzes.reduce((total, quiz) => total + quiz.score, 0) + completions.reduce((total, entry) => total + entry.score, 0);
-  const requestedType = req.query.tipo;
-  const filter = typeof requestedType === 'string' && Object.hasOwn(ticketTypes, requestedType) ? requestedType : '';
+  const filter = ticketFilter(req.query.tipo);
+  const statusByTicket = new Map(ticketProgress.map(({ ticketId, status }) => [ticketId, status]));
   const actualTickets = cases.filter((entry) => entry.ticket).map((entry) => ({ _id: entry._id, ...entry.ticket, municipality: 'Vallechiara', aiSummary: entry.draft?.description || '', urgency: urgencyLabels[entry.ticket.urgency] }));
-  const queue = [...actualTickets, ...example.tickets].sort((first, second) => priorities[first.priority] - priorities[second.priority] || first.createdAt - second.createdAt);
-  const tickets = filter ? queue.filter((ticket) => ticket.type === filter) : queue;
-  const filters = [{ value: '', label: 'Tutti', count: queue.length }, ...Object.entries(ticketTypes).map(([value, label]) => ({ value, label, count: queue.filter((ticket) => ticket.type === value).length }))];
+  const allTickets = [...actualTickets, ...example.tickets]
+    .map((ticket) => ({ ...ticket, status: statusByTicket.get(String(ticket._id)) || 'aperto' }))
+    .sort((first, second) => Number(first.status === 'chiuso') - Number(second.status === 'chiuso') || priorities[first.priority] - priorities[second.priority] || first.createdAt - second.createdAt);
+  const tickets = filter ? allTickets.filter((ticket) => ticket.type === filter) : allTickets;
+  const filters = [{ value: '', label: 'Tutti', count: allTickets.length }, ...Object.entries(ticketTypes).map(([value, label]) => ({ value, label, count: allTickets.filter((ticket) => ticket.type === value).length }))];
+  const queue = allTickets.filter((ticket) => ticket.status !== 'chiuso');
   const highPriority = queue.filter((ticket) => ticket.priority === 'alta').length;
+  const competenceDetail = [quizzes.length && `${quizzes.length} quiz della sessione`, completions.length && (completions.length === 1 ? '1 ripasso completato' : `${completions.length} ripassi completati`)].filter(Boolean).join(' · ');
   const metrics = [
-    { label: 'Ticket evitati', value: resolved.length + example.resolved, detail: `${resolved.length} dalla sessione`, icon: 'fa-circle-check' },
+    { label: 'Ticket evitati', value: resolved.length + example.resolved, detail: resolved.length ? `${resolved.length} dalla sessione` : '', icon: 'fa-circle-check' },
     { label: 'Risolte al livello 1', value: `${Math.round((100 * (resolvedDirect + example.resolvedDirect)) / (closed + example.closed))}%`, detail: 'Sulle richieste chiuse', icon: 'fa-comment-dots' },
-    { label: 'Competenza media', value: `${Math.round((100 * (quizCorrect + example.quizCorrect)) / (questionCount + example.quizQuestions))}%`, detail: `${quizzes.length} quiz della sessione · ${completions.length} ripassi completati`, icon: 'fa-list-check' },
-    { label: 'Ticket in coda', value: queue.length, detail: `${highPriority} a priorità alta`, icon: 'fa-ticket' },
+    { label: 'Competenza media', value: `${Math.round((100 * (quizCorrect + example.quizCorrect)) / (questionCount + example.quizQuestions))}%`, detail: competenceDetail, icon: 'fa-list-check' },
+    { label: 'Ticket in coda', value: queue.length, detail: highPriority ? `${highPriority} a priorità alta` : '', icon: 'fa-ticket' },
   ];
   const requestedTopics = rankDashboardRows(cases.map((entry) => entry.topic).filter(Boolean), example.topics).slice(0, 6);
   const manualGaps = rankDashboardRows(
@@ -193,6 +208,8 @@ exports.dashboard = async (req, res) => {
     topics,
     tickets,
     ticketTypes,
+    ticketStatuses,
+    ticketUpdate,
     filters,
     filter,
     metrics,
@@ -203,7 +220,7 @@ exports.dashboard = async (req, res) => {
     assignments: assignments.map(({ topic, lesson, target, completions }) => {
       const score = completions.reduce((sum, entry) => sum + entry.score, 0);
       const total = completions.reduce((sum, entry) => sum + entry.total, 0);
-      return { topic, title: lesson.title, target, count: completions.length, percent: total ? Math.round((100 * score) / total) : null };
+      return { topic, title: cleanLessonText(lesson.title), target, count: completions.length, percent: total ? Math.round((100 * score) / total) : null };
     }),
   });
 };
@@ -214,11 +231,18 @@ exports.resetDemo = async (req, res) => {
   const scope = { owner: identity, ...(req.user ? { sessionId: sessionID } : {}) };
   const completedHere = { owner: identity, sessionId: sessionID };
 
-  await Promise.all([Case.deleteMany(scope), Quiz.deleteMany(scope), Assignment.deleteMany({ createdBy: identity, createdInSession: sessionID }), Assignment.updateMany({ completions: { $elemMatch: completedHere } }, { $pull: { completions: completedHere } })]);
+  await Promise.all([
+    Case.deleteMany(scope),
+    Quiz.deleteMany(scope),
+    TicketProgress.deleteMany({ owner: identity, sessionId: sessionID }),
+    Assignment.deleteMany({ createdBy: identity, createdInSession: sessionID }),
+    Assignment.updateMany({ completions: { $elemMatch: completedHere } }, { $pull: { completions: completedHere } }),
+  ]);
 
   delete req.session.assignmentDraft;
   delete req.session.completedReview;
   delete req.session.comunePilotCitations;
+  delete req.session.ticketUpdate;
   req.session.demoReset = true;
   return res.redirect(303, '/palitalsoft?ripristinata=1');
 };
@@ -348,6 +372,27 @@ exports.ticket = async (req, res) => {
   const confirmed = await Case.findOne({ _id: caseId, owner: identity, ticket: { $exists: true } }).lean();
   if (confirmed) return res.json({ id: confirmed._id, priority: confirmed.ticket.priority });
   return res.status(409).json({ error: 'La bozza è cambiata. Avvia una nuova richiesta.' });
+};
+
+exports.updateTicketStatus = async (req, res) => {
+  const { ticketId: requestedId, status, tipo } = req.body || {};
+  const example = demo.dashboardExample.tickets.some((ticket) => ticket._id === requestedId);
+  if ((!example && !validId(requestedId)) || !['in_carico', 'chiuso'].includes(status)) return res.status(400).send('Azione ticket non valida.');
+  const ticketId = example ? requestedId : requestedId.toLowerCase();
+  const identity = owner(req);
+  if (!example && !(await Case.exists({ _id: ticketId, owner: identity, ticket: { $exists: true } }))) return res.status(404).send('Ticket non trovato.');
+
+  const id = JSON.stringify([identity, req.sessionID, ticketId]);
+  const options = { returnDocument: 'after' };
+  const progress =
+    status === 'in_carico'
+      ? await TicketProgress.findOneAndUpdate({ _id: id }, { $setOnInsert: { owner: identity, sessionId: req.sessionID, ticketId, status } }, { ...options, upsert: true })
+      : await TicketProgress.findOneAndUpdate({ _id: id, status: { $in: ['in_carico', 'chiuso'] } }, { $set: { status } }, options);
+
+  if (progress?.status !== status) return res.status(409).send('Lo stato del ticket è cambiato. Ricarica la coda.');
+  req.session.ticketUpdate = status === 'in_carico' ? 'Ticket preso in carico.' : 'Ticket chiuso.';
+  const filter = ticketFilter(tipo);
+  return res.redirect(303, `/palitalsoft${filter ? `?tipo=${encodeURIComponent(filter)}` : ''}#coda`);
 };
 
 const publicQuestion = ({ question, options }) => ({ question, options });

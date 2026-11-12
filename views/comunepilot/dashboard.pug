@@ -13,9 +13,10 @@ block content
       article.cp-card.cp-metric
         span= metric.label
         strong= metric.value
-        small(class=index === 3 ? 'cp-metric-priority' : '')
-          i.fa-solid(aria-hidden='true', class=metric.icon)
-          = metric.detail
+        if metric.detail
+          small(class=index === 3 ? 'cp-metric-priority' : '')
+            i.fa-solid(aria-hidden='true', class=metric.icon)
+            = metric.detail
   p.cp-dashboard-note Dati della sessione e dati simulati inclusi negli indicatori.
 
   section#assignment-preview.cp-card.cp-document(aria-labelledby='preview-title', hidden)
@@ -37,7 +38,8 @@ block content
         .cp-topic-row
           strong= item.title
           span= item.target
-          span= item.count === 1 ? '1 completamento' : item.count + ' completamenti'
+          if item.count
+            span= item.count === 1 ? '1 completamento' : item.count + ' completamenti'
           if item.percent !== null
             span= 'Competenza media · ' + item.percent + '%'
             progress.cp-progress(value=item.percent, max='100', aria-label=item.topic)
@@ -45,11 +47,13 @@ block content
   .cp-dashboard-grid
     section#coda.cp-card.cp-document.cp-queue(aria-labelledby='coda-title')
       h2#coda-title Coda ticket intelligente
-      p Ordinata per priorità. Tipo e riassunto sono proposti dall’IA.
+      p Coda simulata, ordinata per priorità. Tipo e riassunto sono proposti dall’IA.
+      if ticketUpdate
+        p.cp-feedback.cp-feedback-success(role='status')= ticketUpdate
       nav.cp-ticket-filters(aria-label='Filtra per tipo')
         each item in filters
           a.cp-filter-chip(href=item.value ? `/palitalsoft?tipo=${encodeURIComponent(item.value)}#coda` : '/palitalsoft#coda', aria-current=filter === item.value ? 'true' : undefined)
-            = `${item.label} · ${item.count}`
+            = item.count ? `${item.label} · ${item.count}` : item.label
       if tickets.length
         .table-responsive
           table.cp-table
@@ -59,8 +63,10 @@ block content
                 th(scope='col') Comune
                 th(scope='col') Tipo
                 th(scope='col') Priorità
+                th(scope='col') Stato
             tbody
               each ticket in tickets
+                - const state = ticketStatuses[ticket.status];
                 tr
                   td
                     if ticket.example
@@ -71,7 +77,7 @@ block content
                         p= ticket.description
                         if ticket.urgency
                           p= `Urgenza: ${ticket.urgency}`
-                        if ticket.stepsTried.length
+                        if ticket.stepsTried && ticket.stepsTried.length
                           ul
                             each attempt in ticket.stepsTried
                               li= attempt
@@ -82,7 +88,7 @@ block content
                     if ticket.example
                       span.cp-sample-mark Dati simulati
                     else
-                      span.cp-table-note Aperto · #{ String(ticket._id).slice(-6).toUpperCase() }
+                      span.cp-table-note Richiesta ##{ String(ticket._id).slice(-6).toUpperCase() }
                   td= ticket.municipality
                   td
                     span.cp-type-tag(class=`type-${ticket.type}`)
@@ -90,6 +96,18 @@ block content
                       = ticketTypes[ticket.type]
                   td
                     span.cp-priority-tag(class=`priority-${ticket.priority}`)= ticket.priority
+                  td
+                    .cp-ticket-controls
+                      span.cp-ticket-status(class=`status-${ticket.status}`)
+                        i.fa-solid(class=state.icon, aria-hidden='true')
+                        = state.label
+                      if state.next
+                        form(action='/palitalsoft/ticket/stato', method='post')
+                          input(type='hidden', name='_csrf', value=_csrf)
+                          input(type='hidden', name='ticketId', value=ticket._id)
+                          input(type='hidden', name='status', value=state.next)
+                          input(type='hidden', name='tipo', value=filter)
+                          button.cp-btn.cp-ticket-action(type='submit', class=state.next === 'chiuso' ? 'cp-btn-secondary' : 'cp-btn-outline', aria-label=`${state.action} per ${ticket.summary}`)= state.action
       else
         p Nessun ticket per il tipo selezionato.
 

@@ -260,6 +260,7 @@ app.get('/palitalsoft', comunePilotController.dashboard);
 app.post('/api/assistant', comunePilotController.ask);
 app.post('/api/assistant/resolve', comunePilotController.resolve);
 app.post('/api/tickets', comunePilotController.ticket);
+app.post('/palitalsoft/ticket/stato', comunePilotController.updateTicketStatus);
 app.post('/api/quiz', comunePilotController.startQuiz);
 app.post('/api/quiz/attempt', comunePilotController.answerQuiz);
 app.post('/api/assignments/preview', comunePilotController.previewAssignment);

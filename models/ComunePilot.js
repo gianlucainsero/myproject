@@ -34,6 +34,15 @@ const caseSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+const ticketProgressSchema = new mongoose.Schema({
+  _id: String,
+  owner: { type: String, required: true },
+  sessionId: { type: String, required: true },
+  ticketId: { type: String, required: true },
+  status: { type: String, enum: ['in_carico', 'chiuso'], required: true },
+});
+ticketProgressSchema.index({ owner: 1, sessionId: 1 });
+
 const quizSchema = new mongoose.Schema(
   {
     owner: { type: String, required: true, index: true },
@@ -72,6 +81,7 @@ const assignmentSchema = new mongoose.Schema({
 
 module.exports = {
   Case: mongoose.model('ComunePilotCase', caseSchema),
+  TicketProgress: mongoose.model('ComunePilotTicketProgress', ticketProgressSchema),
   Quiz: mongoose.model('ComunePilotQuiz', quizSchema),
   Assignment: mongoose.model('ComunePilotAssignment', assignmentSchema),
 };
