@@ -2,53 +2,47 @@ extends layout
 
 block content
   include ticket-icons
-  - const levels = [{ label: 'Risposta diretta', icon: 'fa-circle-check', description: 'I passi da fare e il manuale da cui li ho presi.' }, { label: 'Ti guido io', icon: 'fa-list-check', description: 'Ti faccio qualche domanda e ti preparo una checklist.' }, { label: 'Ticket assistenza', icon: 'fa-ticket', description: 'Preparo la richiesta. La confermi tu nella coda simulata.' }];
+  - const levels = [{ label: 'Risposta diretta', icon: 'fa-circle-check', description: 'I passi da fare e il manuale da cui li ho presi.' }, { label: 'Ti guido io', icon: 'fa-list-check', description: 'Ti chiedo il dettaglio che serve per scegliere i passaggi.' }, { label: 'Ticket assistenza', icon: 'fa-ticket', description: 'Preparo la richiesta. La confermi tu nella coda simulata.' }];
   header.cp-page-intro
-    span.cp-eyebrow Cityware Online
     h1 Assistente
     p Chiedi una procedura di Cityware Online o descrivi un problema operativo.
-  .cp-detail-grid.cp-assistant-grid
-    section.cp-card.cp-chat(aria-label='Conversazione con l’assistente')
-      header.cp-chat-header
-        .cp-feature-icon
-          i.fa-solid.fa-comment-dots(aria-hidden='true')
-        div
-          h2= `Assistente ${productName}`
-          p= assistantMode
-        button#new-case.cp-btn.cp-btn-outline(type='button', hidden) Nuova domanda
-      ol.cp-stepper(aria-label='Livello di aiuto')
-        each level, index in levels
-          li.cp-step(class=`level-${index + 1}`, data-assistant-level=index + 1, data-label=level.label, data-icon=level.icon)
-            span.cp-step-number(aria-hidden='true')= index + 1
+  section.cp-card.cp-chat(aria-label='Conversazione con l’assistente')
+    header.cp-chat-header
+      .cp-feature-icon
+        i.fa-solid.fa-comment-dots(aria-hidden='true')
+      div
+        h2= `Assistente ${productName}`
+        p= assistantMode
+      button#new-case.cp-btn.cp-btn-outline(type='button', hidden) Nuova domanda
+    ol.cp-stepper(aria-label='Livello di aiuto')
+      each level, index in levels
+        li.cp-step(class=`level-${index + 1}`, data-assistant-level=index + 1, data-label=level.label, data-icon=level.icon)
+          span.cp-step-number(aria-hidden='true')= index + 1
+          span.cp-step-copy
             span= level.label
-            span.cp-step-current(aria-hidden='true') Attivo
-      #messages.cp-messages(role='log', aria-live='polite', aria-relevant='additions text')
-        #empty-chat.cp-empty-chat
-          h3 Come posso aiutarti?
-          p Prova a partire da una di queste domande.
-          .cp-prompts
-            button(type='button', data-prompt='Come preparo il Rilascio CIE in Gestione Carte d’identità in Cityware?') Come rilascio una carta d’identità?
-            button(type='button', data-prompt='Elezioni amministrative: devo aprire una nuova tornata in Cityware, da dove partire?') Da dove parto per aprire la tornata elettorale?
-            button(type='button', data-prompt='Stampa Liste Sezionali: errore nella funzione di stampa 322, anche con un testo cwd corretto. L’ufficio è bloccato e la consegna è oggi.') La stampa delle liste sezionali è bloccata.
-      p#chat-error.cp-form-error(role='alert', hidden)
-      form#chat-form.cp-composer
-        label.visually-hidden(for='chat-input') Scrivi una domanda
-        input#chat-input(name='message', placeholder='Scrivi una domanda…', required, maxlength='1500', autocomplete='off')
-        button.cp-btn.cp-btn-primary(type='submit')
-          | Invia
-          i.fa-solid.fa-arrow-up(aria-hidden='true')
-      p.cp-chat-note Usa dati di esempio e ometti i dati personali.
-    aside.cp-card.cp-document.cp-chat-aside
-      h2 Come ti aiuto
-      ol.cp-level-list
-        each level, index in levels
-          li
-            span.cp-level-tag(class=`level-${index + 1}`, aria-hidden='true')
-              i.fa-solid(class=level.icon)
-              = index + 1
-            div
-              strong= level.label
-              p= level.description
+            span.cp-step-description= level.description
+          span.cp-step-current(aria-hidden='true') Attivo
+    #messages.cp-messages(role='log', aria-live='polite', aria-relevant='additions text')
+      #empty-chat.cp-empty-chat
+        h3 Come posso aiutarti?
+        .cp-prompts
+          button(type='button', data-prompt='Come preparo il Rilascio CIE in Gestione Carte d’identità in Cityware?')
+            i.fa-solid.fa-id-card(aria-hidden='true')
+            span Come rilascio una carta d’identità?
+          button(type='button', data-prompt='Devo aprire una tornata elettorale. Quale procedura seguo?')
+            i.fa-solid.fa-check-to-slot(aria-hidden='true')
+            span Devo aprire una tornata elettorale. Quale procedura seguo?
+          button(type='button', data-prompt='Stampa Liste Sezionali: errore nella funzione di stampa 322, anche con un testo cwd corretto. L’ufficio è bloccato e la consegna è oggi.')
+            i.fa-solid.fa-print(aria-hidden='true')
+            span La stampa delle liste sezionali è bloccata.
+    p#chat-error.cp-form-error(role='alert', hidden)
+    form#chat-form.cp-composer
+      label.visually-hidden(for='chat-input') Scrivi una domanda
+      input#chat-input(name='message', placeholder='Scrivi una domanda…', required, maxlength='1500', autocomplete='off')
+      button.cp-btn.cp-btn-primary(type='submit')
+        | Invia
+        i.fa-solid.fa-arrow-up(aria-hidden='true')
+    p.cp-chat-note Usa dati di esempio e ometti i dati personali.
   template#ticket-template
     form.cp-ticket-form
       .cp-ticket

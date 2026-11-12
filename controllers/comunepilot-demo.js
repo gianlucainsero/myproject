@@ -79,11 +79,11 @@ const askAssistant = ({ message, history }) => {
   if (/elezion|tornat|amministrativ/.test(text) || confirmingElections) {
     const knownType = /amministrativ|comunal/.test(text) || confirmingElections;
     if (!knownType) {
-      return { ...result, level: 2, answer: 'La guida di Cityware dipende dal tipo di consultazione e dalla fase in cui ti trovi.', question: 'Si tratta di elezioni amministrative e la tornata è ancora da aprire?', sources: [sources.elezioni] };
+      return { ...result, level: 2, answer: 'L’apertura della tornata dipende dal tipo di consultazione.', question: 'Che tipo di consultazione devi aprire?', choices: ['Elezioni amministrative', 'Un altro tipo di consultazione'], sources: [sources.elezioni] };
     }
     return {
       ...result,
-      level: 2,
+      level: 1,
       answer: 'Per iniziare con le elezioni amministrative, apri la funzione dedicata in Cityware.',
       sources: [sources.elezioni],
       steps: ['Vai a Demografici → Elettorale → Elettorale → Elezioni → Apertura Elezioni.', 'Seleziona il tipo di consultazione previsto per le elezioni amministrative.', 'Verifica la data e i dati della tornata nella sezione Elezioni Amministrative del manuale.'],

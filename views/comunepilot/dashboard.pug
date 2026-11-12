@@ -28,22 +28,6 @@ block content
       button#assignment-publish.cp-btn.cp-btn-primary(type='button', hidden) Assegna agli operatori
       button#assignment-close.cp-btn.cp-btn-outline(type='button') Chiudi
 
-  section#ripassi.cp-card.cp-document(aria-labelledby='assignments-title')
-    h2#assignments-title Ripassi assegnati
-    p#assignment-confirmation(role='status', hidden)
-    #assignment-list
-      if !assignments.length
-        p#assignments-empty Nessun ripasso assegnato.
-      each item in assignments
-        .cp-topic-row
-          strong= item.title
-          span= item.target
-          if item.count
-            span= item.count === 1 ? '1 completamento' : item.count + ' completamenti'
-          if item.percent !== null
-            span= 'Competenza media · ' + item.percent + '%'
-            progress.cp-progress(value=item.percent, max='100', aria-label=item.topic)
-
   .cp-dashboard-grid
     section#coda.cp-card.cp-document.cp-queue(aria-labelledby='coda-title')
       h2#coda-title Coda ticket intelligente
@@ -112,18 +96,35 @@ block content
         p Nessun ticket per il tipo selezionato.
 
     .cp-dashboard-side
+      section#ripassi.cp-card.cp-document(aria-labelledby='assignments-title')
+        h2#assignments-title Ripassi assegnati
+        p#assignment-confirmation(role='status', hidden)
+        #assignment-list
+          if !assignments.length
+            p#assignments-empty Nessun ripasso assegnato.
+          each item in assignments
+            .cp-topic-row
+              strong= item.title
+              span= item.target
+              if item.count
+                span= item.count === 1 ? '1 completamento' : item.count + ' completamenti'
+              if item.percent !== null
+                span= 'Competenza media · ' + item.percent + '%'
+                progress.cp-progress(value=item.percent, max='100', aria-label=item.topic)
+
       section.cp-card.cp-document(aria-labelledby='map-title')
         h2#map-title Mappa delle difficoltà
         p Argomenti più chiesti all’assistente.
         ul.cp-ranked-list
           each item, index in requestedTopics
             li
-              .cp-ranked-label
-                strong= item.label
-                span= item.count
-              progress.cp-progress(class=index === 0 ? 'cp-progress-warn' : '', value=item.count, max=requestedTopics[0].count, aria-label=item.label)
-              if item.simulated
-                span.cp-sample-mark= item.session ? `${item.session} dalla sessione · ${item.simulated} simulati` : 'Dati simulati'
+              .cp-ranked-content
+                .cp-ranked-label
+                  strong= item.label
+                  span= item.count
+                progress.cp-progress(class=index === 0 ? 'cp-progress-warn' : '', value=item.count, max=requestedTopics[0].count, aria-label=item.label)
+                if item.simulated
+                  span.cp-sample-mark= item.session ? `${item.session} dalla sessione · ${item.simulated} simulati` : 'Dati simulati'
               button.cp-btn.cp-btn-outline.cp-create-review(type='button', data-topic=item.label, data-origin='difficoltà') Crea ripasso
         if difficulty
           p
@@ -147,14 +148,15 @@ block content
         ul.cp-ranked-list
           each gap in manualGaps
             li
-              .cp-ranked-label
-                strong= gap.label
-                span.cp-gap-count= gap.count
-              if gap.simulated
-                span.cp-sample-mark= gap.session ? `${gap.session} dalla sessione · ${gap.simulated} simulati` : 'Dati simulati'
+              .cp-ranked-content
+                .cp-ranked-label
+                  strong= gap.label
+                  span.cp-gap-count= gap.count
+                if gap.simulated
+                  span.cp-sample-mark= gap.session ? `${gap.session} dalla sessione · ${gap.simulated} simulati` : 'Dati simulati'
               button.cp-btn.cp-btn-outline.cp-create-review(type='button', data-topic=gap.label, data-origin='lacuna') Crea ripasso
 
-  form#reset-demo.cp-study-actions.mt-4(action='/palitalsoft/ripristina', method='post')
+  form#reset-demo.cp-study-actions.cp-dashboard-footer(action='/palitalsoft/ripristina', method='post')
     input(type='hidden', name='_csrf', value=_csrf)
     button.cp-btn.cp-btn-outline(type='submit') Ripristina demo
     span#reset-status(role='status')
