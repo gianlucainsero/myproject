@@ -1,12 +1,12 @@
 extends layout
 
 block content
-  a.cp-back(href='/assistente')
+  a.cp-back(href=manualBack.href)
     i.fa-solid.fa-arrow-left(aria-hidden='true')
-    | Torna all’assistente
+    = manualBack.label
   header.cp-page-intro
-    span.cp-eyebrow Fonte · Servizi Demografici
     h1= source.title
+    p= 'Fonte · ' + (source.module || workspace.label)
   article.cp-card.cp-document.cp-source-document
     .cp-study-heading
       .cp-feature-icon

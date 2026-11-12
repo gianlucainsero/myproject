@@ -8,7 +8,7 @@ html(lang='it')
     link(rel='stylesheet', href='/css/main.css?v=' + getFileHash('/css/main.css'))
     include ../partials/orienta-head
     link(rel='stylesheet', href='/css/comunepilot.css?v=' + getFileHash('/css/comunepilot.css'))
-  body.cp-app
+  body.cp-app(data-workspace=workspace.id)
     a.cp-skip(href='#contenuto') Vai al contenuto
     mixin navLink(key, label, href, icon)
       - const current = page === key ? 'page' : key === 'home' && ['welcome', 'manual'].includes(page) ? 'location' : undefined;
@@ -26,20 +26,32 @@ html(lang='it')
           span= user ? 'Account' : 'Accedi'
     .cp-frame
       aside.cp-sidebar
-        .cp-workspace
-          .cp-workspace-icon
-            i.fa-solid.fa-landmark(aria-hidden='true')
-          div
-            strong Comune di Vallechiara
-            span Servizi Demografici
+        details.cp-area-switch
+          summary
+            .cp-workspace-icon
+              i.fa-solid(class=workspace.icon, aria-hidden='true')
+            .cp-area-current
+              span Area di lavoro
+              strong= workspace.label
+            i.fa-solid.fa-chevron-down.cp-area-chevron(aria-hidden='true')
+          ul.cp-area-options(aria-label='Aree di lavoro')
+            each item in workspaces
+              li
+                a(href=item.id === workspace.id ? undefined : areaLink(item.id), data-switch-area=item.id, aria-current=item.id === workspace.id ? 'true' : undefined)
+                  i.fa-solid(class=item.icon, aria-hidden='true')
+                  span= item.label
+                  if item.id === workspace.id
+                    i.fa-solid.fa-check(aria-hidden='true')
         nav.cp-navigation(aria-label='Navigazione principale')
-          p.cp-nav-label Spazio operatore
-          +navLink('home', 'Il mio percorso', '/', 'fa-book-open')
-          +navLink('lesson', 'Microlezione CIE', '/formazione/cie', 'fa-circle-play')
-          +navLink('quiz', 'Mini-quiz', '/quiz', 'fa-list-check')
-          +navLink('assistant', 'Assistente', '/assistente', 'fa-comment-dots')
-          p.cp-nav-label Spazio formatore
-          +navLink('dashboard', 'Cruscotto', '/palitalsoft', 'fa-chart-column')
+          .cp-nav-group(role='group', aria-labelledby='nav-operator')
+            p#nav-operator.cp-nav-label Spazio operatore
+            +navLink('home', 'Il mio percorso', workspaceHref('/'), 'fa-book-open')
+            +navLink('lesson', workspace.id === 'demografici' ? 'Microlezione CIE' : 'Microlezione', navLesson, 'fa-circle-play')
+            +navLink('quiz', 'Mini-quiz', workspaceHref('/quiz'), 'fa-list-check')
+            +navLink('assistant', 'Assistente', workspaceHref('/assistente'), 'fa-comment-dots')
+          .cp-nav-group(role='group', aria-labelledby='nav-trainer')
+            p#nav-trainer.cp-nav-label Spazio formatore
+            +navLink('dashboard', 'Cruscotto', workspaceHref('/palitalsoft'), 'fa-chart-column')
       main#contenuto.cp-main(tabindex='-1')
         .cp-content
           block content

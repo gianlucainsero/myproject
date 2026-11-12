@@ -4,12 +4,20 @@ const { cleanLesson, cleanLessonText } = require('../ai/lesson-text');
 const { loadIndex } = require('../ai/search');
 const { Assignment, Case, Quiz, TicketProgress } = require('../models/ComunePilot');
 const demo = require('./comunepilot-demo');
+const training = require('./comunepilot-areas');
+const { defaultArea, workspaces, findWorkspace, getWorkspace, areaHref } = require('../config/orienta-areas');
 
-const area = 'demografici';
+const area = defaultArea;
 const assistantArea = 'tutti';
-const assignmentTarget = 'Servizi Demografici – tutti i Comuni';
+const { electionTopic } = demo;
+const quizBackLinks = {
+  percorso: { href: '/#ripassi', label: 'Torna ai ripassi' },
+  lezione: { href: '/formazione/cie', label: 'Torna alla lezione CIE' },
+  assistente: { href: '/assistente', label: 'Torna all’assistente' },
+};
+const assignmentTarget = (id) => `${getWorkspace(id).label} – tutti i Comuni`;
 const useTeamAI = () => process.env.COMUNEPILOT_LIVE_AI !== 'false';
-const aiModule = () => (useTeamAI() ? ai : demo);
+const aiModule = (id) => (useTeamAI() || id !== defaultArea ? ai : demo);
 
 const ticketTypes = { bug: 'Bug', configurazione: 'Configurazione', formazione: 'Formazione', altro: 'Supporto operativo' };
 const urgencyLabels = { oggi: 'Entro oggi', presto: 'A breve', nessuna: 'Nessuna scadenza' };
@@ -30,11 +38,38 @@ const owner = (req) => {
   return req.user ? `user:${req.user.id}` : `demo:${req.sessionID}`;
 };
 
-const locals = (page, title) => ({ page, title });
-const latestQuiz = (req, topic) =>
-  Quiz.findOne({ owner: owner(req), completedAt: { $exists: true }, ...(topic ? { topic } : {}) })
+const scopeArea = (id, includeGlobal = false) => (id === defaultArea ? { $or: [{ area: { $exists: false } }, { area: { $in: includeGlobal ? [defaultArea, assistantArea] : [defaultArea] } }] } : { area: id });
+const requestArea = (req) => getWorkspace(req.query.area).id;
+const formArea = (req) => (!req.body?.area ? defaultArea : findWorkspace(req.body.area)?.id);
+const lessonHref = (id, lesson) => areaHref(`/ripasso/${lesson.id}`, id);
+const quizHref = (id, topic, origin) => areaHref('/quiz', id, { topic, da: origin });
+const lessonsIn = (id) => training[id].lessons || [];
+const locals = (page, title, id = defaultArea) => {
+  const [firstLesson] = lessonsIn(id);
+  const switchPath = page === 'assistant' ? '/assistente' : page === 'dashboard' ? '/palitalsoft' : page === 'quiz' ? '/quiz' : '/';
+  return {
+    page,
+    title,
+    workspace: getWorkspace(id),
+    workspaces,
+    workspaceHref: (path, params) => areaHref(path, id, params),
+    areaLink: (destination) => areaHref(switchPath, destination),
+    navLesson: firstLesson ? lessonHref(id, firstLesson) : '/formazione/cie',
+  };
+};
+const latestQuiz = (req, topic, id = defaultArea) =>
+  Quiz.findOne({ owner: owner(req), completedAt: { $exists: true }, topic, ...scopeArea(id, true) })
     .sort({ completedAt: -1 })
     .lean();
+
+function courseSource(lesson, id) {
+  const { raw } = loadIndex(id);
+  const doc = raw.docs.find(({ file }) => file.endsWith(`/${lesson.source}`));
+  if (!doc) return null;
+  const chunks = raw.chunks.filter(({ doc: docId }) => docId === doc.id);
+  const chunk = chunks.find(({ heading }) => lesson.section.test(heading)) || chunks[0];
+  return chunk && { title: doc.title, file: doc.file, module: doc.module, section: chunk.heading || null, chunkId: chunk.id };
+}
 const indexedSources = new Map();
 
 function getIndexedSources(indexArea) {
@@ -42,7 +77,7 @@ function getIndexedSources(indexArea) {
   const { raw: index } = loadIndex(indexArea);
   const byId = new Map();
   const byFile = new Map();
-  const prefix = indexArea === area ? 'indice-' : 'indice-tutti-';
+  const prefix = indexArea === defaultArea ? 'indice-' : `indice-${indexArea}-`;
   for (const chunk of index.chunks) {
     const { title, file, module } = index.docs[chunk.doc];
     const source = { title, file, module, chunkId: chunk.id, section: chunk.heading, text: chunk.text, excerpt: true, id: prefix + chunk.id };
@@ -63,25 +98,41 @@ const sourceLink = (source, req, indexArea = area) => {
     const indexed = entries.find((entry) => entry.chunkId === source.chunkId && (entry.section || null) === source.section) || entries.find((entry) => entry.section === source.section) || (source.section == null ? entries[0] : undefined);
     if (indexed) {
       req.session.comunePilotCitations = [...new Set([...(req.session.comunePilotCitations || []), indexed.id])].slice(-100);
-      return { title: indexed.title, file: indexed.file, module: indexed.module || source.module, section: indexed.section, url: `/manuali/${indexed.id}` };
+      return { title: indexed.title, file: indexed.file, module: indexed.module || source.module, section: indexed.section, url: areaHref(`/manuali/${indexed.id}`, getWorkspace(indexArea).id) };
     }
   }
   return { title: source.title, file: source.file, module: source.module, section: source.section || match?.[1].section, url: match ? `/manuali/${match[0]}` : null };
 };
 
 exports.home = async (req, res) => {
+  const id = requestArea(req);
   const identity = owner(req);
-  const [latest, assignment] = await Promise.all([
-    latestQuiz(req, demo.topic),
-    Assignment.findOne({ 'completions.owner': { $ne: identity } })
+  const lessons = lessonsIn(id);
+  const topics = lessons.length ? lessons.map(({ topic }) => topic) : [demo.topic, electionTopic];
+  const [quizzes, assignment] = await Promise.all([
+    Promise.all(topics.map((topic) => latestQuiz(req, topic, id))),
+    Assignment.findOne({ area: id, 'completions.owner': { $ne: identity } })
       .sort({ createdAt: -1 })
       .select('lesson.title')
       .lean(),
   ]);
-  const { completedReview } = req.session;
-  delete req.session.completedReview;
+  const completedReview = req.session.completedReview && (req.session.completedReview.area || defaultArea) === id;
+  if (completedReview) delete req.session.completedReview;
   const pending = assignment && { id: assignment._id, title: cleanLessonText(assignment.lesson.title) };
-  res.render('comunepilot/home', { ...locals('home', 'Il mio percorso'), latest, assignment: pending, completedReview });
+  res.render('comunepilot/home', {
+    ...locals('home', 'Il mio percorso', id),
+    latest: quizzes[0],
+    electionQuiz: quizzes[1],
+    electionQuizUrl: quizHref(defaultArea, electionTopic, 'percorso'),
+    lessons: lessons.map((lesson, index) => ({
+      ...lesson,
+      href: lessonHref(id, lesson),
+      quizUrl: quizHref(id, lesson.topic, 'percorso'),
+      score: quizzes[index] ? Math.round((100 * quizzes[index].score) / quizzes[index].questions.length) : null,
+    })),
+    assignment: pending,
+    completedReview,
+  });
 };
 
 exports.lesson = async (req, res) => {
@@ -89,43 +140,82 @@ exports.lesson = async (req, res) => {
 };
 
 exports.welcome = (req, res) => {
-  res.render('comunepilot/welcome', locals('welcome', 'Primo accesso'));
+  const id = requestArea(req);
+  const lessons = lessonsIn(id);
+  res.render('comunepilot/welcome', { ...locals('welcome', 'Primo accesso', id), topics: lessons.map(({ topic }) => topic) });
 };
 
 exports.assistant = (req, res) => {
   let assistantMode = 'Risposte dimostrative dai manuali';
-  if (useTeamAI()) assistantMode = ai.isAiConfigured() ? 'Gemini con fonti dai manuali' : 'Ricerca nei manuali · modalità di riserva';
-  res.render('comunepilot/assistant', { ...locals('assistant', 'Assistente'), assistantMode });
+  const id = requestArea(req);
+  if (aiModule(id) === ai) assistantMode = useTeamAI() && ai.isAiConfigured() ? 'Gemini con fonti dai manuali' : 'Ricerca nei manuali · modalità di riserva';
+  res.render('comunepilot/assistant', { ...locals('assistant', 'Assistente', id), assistantMode, prompts: training[id].prompts });
 };
 
 exports.quiz = async (req, res) => {
-  const quizArea = req.query.area === assistantArea ? assistantArea : area;
-  res.render('comunepilot/quiz', { ...locals('quiz', 'Mini-quiz'), quizArea, topic: trainingTopic(text(req.query.topic, 100)) || demo.topic, latest: await latestQuiz(req) });
+  const id = requestArea(req);
+  const quizArea = req.query.area === assistantArea ? assistantArea : id;
+  const lessons = lessonsIn(id);
+  const topic = trainingTopic(text(req.query.topic, 100)) || lessons[0]?.topic || demo.topic;
+  const lesson = lessons.find((item) => item.topic === topic);
+  const origin = req.query.da;
+  const isCie = id === defaultArea && topic === demo.topic;
+  let back = { ...quizBackLinks.percorso, href: areaHref(quizBackLinks.percorso.href, id) };
+  if (origin === 'assistente') back = { ...quizBackLinks.assistente, href: areaHref(quizBackLinks.assistente.href, id) };
+  else if (lesson && origin === 'lezione') back = { href: lessonHref(id, lesson), label: 'Torna alla lezione' };
+  else if (isCie && origin !== 'percorso') back = quizBackLinks.lezione;
+  let reviewLink;
+  if (lesson) reviewLink = { href: lessonHref(id, lesson), label: 'Rivedi la lezione' };
+  if (isCie) reviewLink = { href: '/formazione/cie', label: 'Rivedi la lezione CIE' };
+  if (id === defaultArea && topic === electionTopic) reviewLink = { href: '/manuali/elezioni', label: 'Apri il manuale elettorale' };
+  res.render('comunepilot/quiz', { ...locals('quiz', 'Mini-quiz', id), quizArea, topic, latest: await latestQuiz(req, topic, id), back, reviewLink });
 };
 
 exports.review = async (req, res) => {
-  const identity = owner(req);
-  const assignment = validId(req.params.id) ? await Assignment.findById(req.params.id).lean() : null;
+  if (!validId(req.params.id)) {
+    const workspace = workspaces.find(({ id }) => lessonsIn(id).some((lesson) => lesson.id === req.params.id));
+    if (!workspace) return res.status(404).send('Microlezione non disponibile.');
+    const { id } = workspace;
+    const lesson = lessonsIn(id).find((item) => item.id === req.params.id);
+    const source = courseSource(lesson, id);
+    const reference = source && sourceLink(source, req, id);
+    if (reference?.url) {
+      const url = new URL(reference.url, 'http://localhost');
+      url.searchParams.set('da', lesson.id);
+      reference.url = url.pathname + url.search;
+    }
+    return res.render('comunepilot/review', {
+      ...locals('lesson', lesson.title, id),
+      lesson,
+      sources: reference ? [reference] : [],
+      courseQuizUrl: quizHref(id, lesson.topic, 'lezione'),
+    });
+  }
+  const assignment = await Assignment.findById(req.params.id).lean();
   if (!assignment) return res.status(404).send('Ripasso non disponibile.');
-  const { topic, _id, completions } = assignment;
+  const { topic, _id, completions, area: id } = assignment;
   const lesson = cleanLesson(assignment.lesson);
-  const sources = lesson.sources.map((source) => sourceLink(source, req));
-  const completion = completions.find((entry) => entry.owner === identity);
-  res.render('comunepilot/review', { ...locals('home', lesson.title), lesson, sources, completion, topic, assignmentId: _id.toString() });
+  const sources = lesson.sources.map((source) => sourceLink(source, req, id));
+  const completion = completions.find((entry) => entry.owner === owner(req));
+  return res.render('comunepilot/review', { ...locals('home', lesson.title, id), lesson, sources, completion, topic, quizArea: id, assignmentId: _id.toString() });
 };
 
 exports.manual = (req, res) => {
   const { id } = req.params;
   const cited = req.session.comunePilotCitations?.includes(id);
-  const indexArea = id.startsWith('indice-tutti-') ? assistantArea : area;
-  const indexed = cited ? getIndexedSources(indexArea).byId.get(id) : null;
+  const indexArea = id.match(/^indice-(?:(.+)-)?\d+$/)?.[1] || defaultArea;
+  const validArea = indexArea === assistantArea || findWorkspace(indexArea);
+  const indexed = cited && validArea ? getIndexedSources(indexArea).byId.get(id) : null;
   const source = Object.hasOwn(demo.sources, id) ? demo.sources[id] : indexed;
   if (!source) return res.status(404).send('Fonte non disponibile');
+  const workspace = getWorkspace(indexArea);
+  const lesson = lessonsIn(workspace.id).find((item) => item.id === req.query.da);
+  const manualBack = lesson ? { href: lessonHref(workspace.id, lesson), label: 'Torna alla lezione' } : { href: areaHref('/assistente', workspace.id), label: 'Torna all’assistente' };
   const content = source.text
     .split('\n')
     .filter((line) => !/^\s*\[(schermata|immagine|screenshot)\b/i.test(line))
     .join('\n');
-  return res.render('comunepilot/manual', { ...locals('manual', source.title), source: { ...source, text: content } });
+  return res.render('comunepilot/manual', { ...locals('manual', source.title, workspace.id), manualBack, source: { ...source, text: content } });
 };
 
 function rankDashboardRows(values, examples) {
@@ -143,19 +233,41 @@ function rankDashboardRows(values, examples) {
   return [...rows.values()].sort((first, second) => second.count - first.count || first.label.localeCompare(second.label, 'it'));
 }
 
+function dashboardExample(id) {
+  if (id === defaultArea) return demo.dashboardExample;
+  const { ticket, difficulties } = training[id];
+  return {
+    resolved: 5,
+    closed: 7,
+    resolvedDirect: 4,
+    quizCorrect: 8,
+    quizQuestions: 12,
+    tickets: [{ ...ticket, _id: `DEMO-${id}`, type: 'bug', priority: 'alta', createdAt: new Date('2026-11-09'), example: true }],
+    topics: difficulties.map((label, index) => ({ label, count: 5 - index })),
+    gaps: [],
+  };
+}
+
 exports.dashboard = async (req, res) => {
+  const id = requestArea(req);
   const identity = owner(req);
-  const { demoReset, ticketUpdate } = req.session;
-  delete req.session.demoReset;
-  delete req.session.ticketUpdate;
-  const { dashboardExample: example } = demo;
+  const demoReset = req.session.demoReset === id || (id === defaultArea && req.session.demoReset === true);
+  const update = req.session.ticketUpdate;
+  const ticketUpdate = update?.area === id ? update.message : id === defaultArea && typeof update === 'string' ? update : null;
+  if (demoReset) delete req.session.demoReset;
+  if (ticketUpdate) delete req.session.ticketUpdate;
+  const example = dashboardExample(id);
   const [cases, quizzes, assignments, ticketProgress] = await Promise.all([
-    Case.find({ owner: identity }).select('topic level resolvedAt ticket draft.description manualGaps').lean(),
-    Quiz.find({ owner: identity, completedAt: { $exists: true }, assignment: { $exists: false } })
+    Case.find({ owner: identity, ...scopeArea(id) })
+      .select('topic level resolvedAt ticket draft.description manualGaps')
+      .lean(),
+    Quiz.find({ owner: identity, completedAt: { $exists: true }, assignment: { $exists: false }, ...scopeArea(id, true) })
       .select('topic questions answers score')
       .lean(),
-    Assignment.find().sort({ createdAt: -1 }).select('topic lesson.title target completions.score completions.total').lean(),
-    TicketProgress.find({ owner: identity, sessionId: req.sessionID }).select('ticketId status').lean(),
+    Assignment.find({ area: id }).sort({ createdAt: -1 }).select('topic lesson.title target completions.score completions.total').lean(),
+    TicketProgress.find({ owner: identity, sessionId: req.sessionID, ...scopeArea(id) })
+      .select('ticketId status')
+      .lean(),
   ]);
   const resolved = cases.filter((entry) => entry.resolvedAt && !entry.ticket);
   const closed = cases.filter((entry) => entry.resolvedAt || entry.ticket).length;
@@ -204,7 +316,7 @@ exports.dashboard = async (req, res) => {
     example.gaps,
   );
   res.render('comunepilot/dashboard', {
-    ...locals('dashboard', 'Cruscotto Palitalsoft'),
+    ...locals('dashboard', 'Cruscotto Palitalsoft', id),
     topics,
     tickets,
     ticketTypes,
@@ -226,25 +338,27 @@ exports.dashboard = async (req, res) => {
 };
 
 exports.resetDemo = async (req, res) => {
+  const id = formArea(req);
+  if (!id) return res.status(400).send('Area non disponibile.');
   const identity = owner(req);
   const { sessionID } = req;
   const scope = { owner: identity, ...(req.user ? { sessionId: sessionID } : {}) };
   const completedHere = { owner: identity, sessionId: sessionID };
 
   await Promise.all([
-    Case.deleteMany(scope),
-    Quiz.deleteMany(scope),
-    TicketProgress.deleteMany({ owner: identity, sessionId: sessionID }),
-    Assignment.deleteMany({ createdBy: identity, createdInSession: sessionID }),
-    Assignment.updateMany({ completions: { $elemMatch: completedHere } }, { $pull: { completions: completedHere } }),
+    Case.deleteMany({ ...scope, ...scopeArea(id) }),
+    Quiz.deleteMany({ ...scope, ...scopeArea(id, true) }),
+    TicketProgress.deleteMany({ owner: identity, sessionId: sessionID, ...scopeArea(id) }),
+    Assignment.deleteMany({ area: id, createdBy: identity, createdInSession: sessionID }),
+    Assignment.updateMany({ area: id, completions: { $elemMatch: completedHere } }, { $pull: { completions: completedHere } }),
   ]);
 
-  delete req.session.assignmentDraft;
-  delete req.session.completedReview;
-  delete req.session.comunePilotCitations;
-  delete req.session.ticketUpdate;
-  req.session.demoReset = true;
-  return res.redirect(303, '/palitalsoft?ripristinata=1');
+  if (req.session.assignmentDrafts?.[id]) delete req.session.assignmentDrafts[id];
+  if (req.session.assignmentDraft?.area === id) delete req.session.assignmentDraft;
+  if ((req.session.completedReview?.area || defaultArea) === id) delete req.session.completedReview;
+  if ((req.session.ticketUpdate?.area || defaultArea) === id) delete req.session.ticketUpdate;
+  req.session.demoReset = id;
+  return res.redirect(303, areaHref('/palitalsoft', id));
 };
 
 const validQuestion = (question) => question?.question && Array.isArray(question.options) && question.options.length >= 2 && Number.isInteger(question.correctIndex) && question.options[question.correctIndex] && question.source?.file;
@@ -252,26 +366,31 @@ const validQuestion = (question) => question?.question && Array.isArray(question
 exports.previewAssignment = async (req, res) => {
   const topic = text(req.body?.topic, 180);
   const { origin } = req.body || {};
-  if (!topic || !['difficoltà', 'lacuna'].includes(origin)) return res.status(400).json({ error: 'Scegli un argomento dal cruscotto.' });
+  const id = formArea(req);
+  if (!id || !topic || !['difficoltà', 'lacuna'].includes(origin)) return res.status(400).json({ error: 'Scegli un argomento dal cruscotto.' });
 
   try {
-    const [lesson, quiz] = await Promise.all([ai.generateLesson({ topic, area }), ai.generateQuiz({ topic, n: 3, area })]);
+    const options = { topic, area: id, useModel: useTeamAI() };
+    const [lesson, quiz] = await Promise.all([ai.generateLesson(options), ai.generateQuiz({ ...options, n: 3 })]);
     if (lesson.keyPoints.length < 3 || quiz.questions.length !== 3 || !quiz.questions.every(validQuestion)) {
       return res.status(422).json({ error: 'I manuali disponibili non bastano per preparare un ripasso di tre domande su questo argomento.' });
     }
     const previewId = new mongoose.Types.ObjectId().toString();
-    req.session.assignmentDraft = { previewId, topic, origin, area, lesson, quiz: quiz.questions };
-    return res.json({ previewId, target: assignmentTarget, lesson: { ...lesson, sources: lesson.sources.map((source) => sourceLink(source, req)) }, quiz: quiz.questions });
+    req.session.assignmentDrafts ??= {};
+    req.session.assignmentDrafts[id] = { previewId, topic, origin, area: id, lesson, quiz: quiz.questions };
+    return res.json({ previewId, target: assignmentTarget(id), lesson: { ...lesson, sources: lesson.sources.map((source) => sourceLink(source, req, id)) }, quiz: quiz.questions });
   } catch {
     return res.status(422).json({ error: 'Non è stato possibile preparare il ripasso dai manuali disponibili. Prova con un altro argomento.' });
   }
 };
 
 exports.publishAssignment = async (req, res) => {
-  const draft = req.session.assignmentDraft;
+  const id = formArea(req);
+  const legacy = req.session.assignmentDraft;
+  const draft = id && (req.session.assignmentDrafts?.[id] || (legacy?.area === id ? legacy : null));
   if (!draft || req.body?.previewId !== draft.previewId) return res.status(409).json({ error: 'Prepara di nuovo l’anteprima prima di assegnare il ripasso.' });
   const { previewId, ...assignment } = draft;
-  const saved = await Assignment.findOneAndUpdate({ _id: previewId }, { $setOnInsert: { ...assignment, target: assignmentTarget, createdBy: owner(req), createdInSession: req.sessionID } }, { upsert: true, returnDocument: 'after', runValidators: true });
+  const saved = await Assignment.findOneAndUpdate({ _id: previewId }, { $setOnInsert: { ...assignment, target: assignmentTarget(assignment.area), createdBy: owner(req), createdInSession: req.sessionID } }, { upsert: true, returnDocument: 'after', runValidators: true });
   return res.status(201).json({ id: saved.id, title: saved.lesson.title, target: saved.target });
 };
 
@@ -279,11 +398,15 @@ exports.ask = async (req, res) => {
   const message = text(req.body?.message, 1500);
   const { caseId } = req.body || {};
   if (!message) return res.status(400).json({ error: 'Scrivi una domanda.' });
-  if (req.body.area && ![area, assistantArea].includes(req.body.area)) return res.status(400).json({ error: 'Area non disponibile.' });
+  const requestedArea = req.body.area;
+  if (requestedArea && requestedArea !== assistantArea && !findWorkspace(requestedArea)) return res.status(400).json({ error: 'Area non disponibile.' });
 
   const identity = owner(req);
   const existing = validId(caseId) ? await Case.findOne({ _id: caseId, owner: identity }).lean() : null;
   if (caseId && !existing) return res.status(404).json({ error: 'Richiesta non trovata.' });
+  const indexArea = requestedArea || (existing?.area && existing.area !== defaultArea ? existing.area : assistantArea);
+  const { id, label } = getWorkspace(indexArea);
+  if (existing && (existing.area || defaultArea) !== id) return res.status(409).json({ error: 'La conversazione appartiene a un’altra area.' });
   if (existing?.ticket || existing?.resolvedAt) return res.status(409).json({ error: 'La richiesta è conclusa. Avvia una nuova domanda.' });
 
   const history = (existing?.history || []).slice(-14).map(({ role, content }) => ({ role, content }));
@@ -300,7 +423,7 @@ exports.ask = async (req, res) => {
         ticket: {
           type: 'altro',
           priority: 'bassa',
-          module: existing.module || 'Servizi Demografici',
+          module: existing.module || label,
           summary: `Supporto per ${existing.topic}`,
           description: history
             .filter((entry) => entry.role === 'user')
@@ -310,19 +433,32 @@ exports.ask = async (req, res) => {
         },
       };
     } else {
-      const { askAssistant } = aiModule();
-      result = await askAssistant({ message, history, area: assistantArea });
+      const { askAssistant } = aiModule(id);
+      result = await askAssistant({ message, history, area: indexArea, useModel: useTeamAI() });
+      const prompt = training[id].prompts.find((item) => item.topic && (item.message === message || item.label === message));
+      const lesson = prompt && lessonsIn(id).find((item) => item.topic === prompt.topic);
+      if (result?.level === 1 && lesson) {
+        result.quizTopic = lesson.topic;
+        const reference = (result.mock || result.fallback) && courseSource(lesson, id);
+        if (reference) {
+          result.answer = lesson.intro;
+          result.steps = [`Apri il menu **${lesson.path}**.`, ...lesson.steps];
+          result.sources = [reference];
+          result.knowledgeGap = false;
+        }
+      }
     }
     if (![1, 2, 3].includes(result?.level) || typeof result.answer !== 'string') throw new Error('Risposta non valida');
   } catch {
     return res.status(503).json({ error: 'L’assistente è momentaneamente indisponibile. Puoi riprovare tra poco.' });
   }
-  const sources = (result.sources || []).map((source) => sourceLink(source, req, assistantArea));
+  const sources = (result.sources || []).map((source) => sourceLink(source, req, indexArea));
   const quizTopic = trainingTopic(result.quizTopic);
   const nextHistory = [...history, { role: 'user', content: message }, { role: 'assistant', content: result.question ? `${result.answer}\n${result.question}` : result.answer }];
   const draft = result.level === 3 && result.ticket ? result.ticket : undefined;
   const values = {
     level: result.level,
+    area: id,
     history: nextHistory,
     topic: quizTopic || existing?.topic || sources[0]?.title || 'Supporto operativo',
     module: sources[0]?.module || result.ticket?.module || existing?.module,
@@ -376,32 +512,59 @@ exports.ticket = async (req, res) => {
 
 exports.updateTicketStatus = async (req, res) => {
   const { ticketId: requestedId, status, tipo } = req.body || {};
-  const example = demo.dashboardExample.tickets.some((ticket) => ticket._id === requestedId);
+  const workspaceId = formArea(req);
+  if (!workspaceId) return res.status(400).send('Area non disponibile.');
+  const example = dashboardExample(workspaceId).tickets.some((ticket) => ticket._id === requestedId);
   if ((!example && !validId(requestedId)) || !['in_carico', 'chiuso'].includes(status)) return res.status(400).send('Azione ticket non valida.');
   const ticketId = example ? requestedId : requestedId.toLowerCase();
   const identity = owner(req);
-  if (!example && !(await Case.exists({ _id: ticketId, owner: identity, ticket: { $exists: true } }))) return res.status(404).send('Ticket non trovato.');
+  if (!example && !(await Case.exists({ _id: ticketId, owner: identity, ticket: { $exists: true }, ...scopeArea(workspaceId) }))) return res.status(404).send('Ticket non trovato.');
 
   const id = JSON.stringify([identity, req.sessionID, ticketId]);
   const options = { returnDocument: 'after' };
   const progress =
     status === 'in_carico'
-      ? await TicketProgress.findOneAndUpdate({ _id: id }, { $setOnInsert: { owner: identity, sessionId: req.sessionID, ticketId, status } }, { ...options, upsert: true })
+      ? await TicketProgress.findOneAndUpdate({ _id: id }, { $setOnInsert: { owner: identity, sessionId: req.sessionID, area: workspaceId, ticketId, status } }, { ...options, upsert: true })
       : await TicketProgress.findOneAndUpdate({ _id: id, status: { $in: ['in_carico', 'chiuso'] } }, { $set: { status } }, options);
 
   if (progress?.status !== status) return res.status(409).send('Lo stato del ticket è cambiato. Ricarica la coda.');
-  req.session.ticketUpdate = status === 'in_carico' ? 'Ticket preso in carico.' : 'Ticket chiuso.';
+  req.session.ticketUpdate = { area: workspaceId, message: status === 'in_carico' ? 'Ticket preso in carico.' : 'Ticket chiuso.' };
   const filter = ticketFilter(tipo);
-  return res.redirect(303, `/palitalsoft${filter ? `?tipo=${encodeURIComponent(filter)}` : ''}#coda`);
+  return res.redirect(303, areaHref('/palitalsoft#coda', workspaceId, filter ? { tipo: filter } : {}));
 };
 
 const publicQuestion = ({ question, options }) => ({ question, options });
+const quizProgress = (quiz) => {
+  const index = quiz.answers?.length || 0;
+  const question = quiz.questions[index];
+  return { id: String(quiz._id), topic: quiz.topic, total: quiz.questions.length, index, question: question ? publicQuestion(question) : null, score: question ? null : quiz.score };
+};
+
+async function recordAssignmentCompletion(req, quiz) {
+  const completion = { owner: quiz.owner, sessionId: quiz.sessionId || req.sessionID, score: quiz.score, total: quiz.questions.length, completedAt: quiz.completedAt };
+  await Assignment.updateOne({ _id: quiz.assignment, 'completions.owner': { $ne: quiz.owner } }, { $push: { completions: completion } });
+  req.session.completedReview = { area: getWorkspace(quiz.area).id };
+}
 
 exports.startQuiz = async (req, res) => {
-  let topic = trainingTopic(text(req.body?.topic, 100)) || demo.topic;
+  const requestedArea = req.body?.area;
+  const workspaceId = requestedArea === assistantArea ? defaultArea : formArea(req);
+  if (!workspaceId) return res.status(400).json({ error: 'Area non disponibile.' });
+  const lessons = lessonsIn(workspaceId);
+  let topic = trainingTopic(text(req.body?.topic, 100)) || lessons[0]?.topic || demo.topic;
   const assignmentId = req.body?.assignmentId;
   const identity = owner(req);
-  let quizArea = req.body?.area === assistantArea ? assistantArea : area;
+  let quizArea = requestedArea === assistantArea ? assistantArea : workspaceId;
+  const resumeId = req.body?.resumeId;
+  if (resumeId) {
+    const quiz = validId(resumeId) ? await Quiz.findOne({ _id: resumeId, owner: identity }).lean() : null;
+    const sameAssignment = String(quiz?.assignment || '') === (assignmentId || '');
+    if (!quiz || !sameAssignment || (!assignmentId && (quiz.topic !== topic || (quiz.area || area) !== quizArea))) {
+      return res.status(404).json({ error: 'Questo tentativo non è più disponibile. Puoi iniziare un nuovo quiz.' });
+    }
+    if (quiz.completedAt && quiz.assignment) await recordAssignmentCompletion(req, quiz);
+    return res.json(quizProgress(quiz));
+  }
   let result;
   if (assignmentId) {
     const assignment = validId(assignmentId) ? await Assignment.findById(assignmentId).lean() : null;
@@ -411,8 +574,14 @@ exports.startQuiz = async (req, res) => {
     result = { questions: assignment.quiz };
   } else {
     try {
-      const { generateQuiz } = aiModule();
-      result = await generateQuiz({ topic: topic === demo.topic ? 'Rilascio CIE in Cityware' : topic, n: 3, area: quizArea });
+      const lesson = lessons.find((item) => item.topic === topic);
+      if (lesson) {
+        const source = courseSource(lesson, workspaceId);
+        result = { questions: lesson.questions.map(([question, options, correctIndex, explanation]) => ({ question, options, correctIndex, explanation, source })) };
+      } else {
+        const { generateQuiz } = aiModule(workspaceId);
+        result = await generateQuiz({ topic: topic === demo.topic ? 'Rilascio CIE in Cityware' : topic, n: 3, area: quizArea, useModel: useTeamAI() });
+      }
     } catch {
       return res.status(503).json({ error: 'Il quiz è momentaneamente indisponibile. Riprova tra poco.' });
     }
@@ -421,7 +590,7 @@ exports.startQuiz = async (req, res) => {
     return res.status(503).json({ error: 'Il quiz è momentaneamente indisponibile. Riprova tra poco.' });
   }
   const quiz = await Quiz.create({ owner: identity, sessionId: req.sessionID, assignment: assignmentId || undefined, topic, area: quizArea, questions: result.questions });
-  return res.status(201).json({ id: quiz.id, topic: quiz.topic, question: publicQuestion(quiz.questions[0]), total: quiz.questions.length });
+  return res.status(201).json(quizProgress(quiz));
 };
 
 exports.answerQuiz = async (req, res) => {
@@ -441,11 +610,7 @@ exports.answerQuiz = async (req, res) => {
     recorded = await Quiz.findOneAndUpdate({ _id: id, owner: identity, answers: { $size: index } }, update, { returnDocument: 'after' }).lean();
     if (!recorded) recorded = await Quiz.findOne({ _id: id, owner: identity }).lean();
   }
-  if (!next && recorded.assignment) {
-    const completion = { owner: identity, sessionId: recorded.sessionId || req.sessionID, score: recorded.score, total: quiz.questions.length, completedAt: recorded.completedAt };
-    await Assignment.updateOne({ _id: recorded.assignment, 'completions.owner': { $ne: identity } }, { $push: { completions: completion } });
-    req.session.completedReview = quiz.topic;
-  }
+  if (!next && recorded.assignment) await recordAssignmentCompletion(req, recorded);
   return res.json({
     correct: recorded.answers[index] === question.correctIndex,
     correctIndex: question.correctIndex,

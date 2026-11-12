@@ -20,33 +20,60 @@ const sources = {
 };
 
 const topic = 'Carte d’identità';
+const electionTopic = 'Elezioni e liste elettorali';
+const electionQuestions = [
+  {
+    question: 'Dove trovi la funzione Apertura Elezioni?',
+    options: ['Anagrafe → Variazioni', 'Elettorale → Elettorale → Elezioni', 'Elettorale → Stampe', 'Protocollo → Registro'],
+    correctIndex: 1,
+    explanation: 'In Servizi Demografici il percorso è Elettorale → Elettorale → Elezioni → Apertura Elezioni.',
+    source: sources.elezioni,
+  },
+  {
+    question: 'Da quale informazione dipende la procedura di apertura della tornata?',
+    options: ['Dal tipo di consultazione', 'Dal numero di stampanti', 'Dalla modalità di pagamento', 'Dal formato del registro'],
+    correctIndex: 0,
+    explanation: 'Il manuale distingue le procedure in base al tipo di consultazione, con una sezione dedicata alle elezioni amministrative.',
+    source: sources.elezioni,
+  },
+  {
+    question: 'Che cosa puoi impostare nella stampa delle liste sezionali?',
+    options: ['Il tipo di CIE', 'La data della tornata', 'Una sezione o un intervallo di sezioni', 'La modalità di pagamento'],
+    correctIndex: 2,
+    explanation: 'La funzione Stampa Liste Sezionali permette di indicare una singola sezione o un intervallo.',
+    source: sources.liste,
+  },
+];
 
-const generateQuiz = ({ n }) => ({
-  topic,
-  questions: [
-    {
-      question: 'Dove trovi Gestione Carte d’identità in Cityware Online?',
-      options: ['Anagrafe → Variazioni', 'Elettorale → Stampe', 'Anagrafe → Sportello', 'Protocollo → Registro'],
-      correctIndex: 0,
-      explanation: 'Da Servizi Demografici apri Anagrafe, quindi Variazioni → Gestione Carte d’identità.',
-      source: sources.cie,
-    },
-    {
-      question: 'Quale azione apri dopo aver selezionato il documento?',
-      options: ['Aggiorna carta su ANPR', 'Rilascio CIE', 'Stampa elenco', 'Parametri Ricerca'],
-      correctIndex: 1,
-      explanation: 'Il pulsante Rilascio CIE apre la finestra per impostare tipo di CIE e pagamento.',
-      source: sources.cie,
-    },
-    {
-      question: 'Quali informazioni puoi indicare nella finestra Rilascio CIE?',
-      options: ['Sezione elettorale e indirizzo', 'Numero di lista e data elezioni', 'Tipo di CIE e modalità di pagamento', 'Protocollo e firmatario'],
-      correctIndex: 2,
-      explanation: 'La finestra consente di indicare il tipo di CIE e la modalità di pagamento per i diritti contabilizzati in Cityware.',
-      source: sources.cie,
-    },
-  ].slice(0, n),
-});
+const cieQuestions = [
+  {
+    question: 'Dove trovi Gestione Carte d’identità in Cityware Online?',
+    options: ['Anagrafe → Variazioni', 'Elettorale → Stampe', 'Anagrafe → Sportello', 'Protocollo → Registro'],
+    correctIndex: 0,
+    explanation: 'Da Servizi Demografici apri Anagrafe, quindi Variazioni → Gestione Carte d’identità.',
+    source: sources.cie,
+  },
+  {
+    question: 'Quale azione apri dopo aver selezionato il documento?',
+    options: ['Aggiorna carta su ANPR', 'Rilascio CIE', 'Stampa elenco', 'Parametri Ricerca'],
+    correctIndex: 1,
+    explanation: 'Il pulsante Rilascio CIE apre la finestra per impostare tipo di CIE e pagamento.',
+    source: sources.cie,
+  },
+  {
+    question: 'Quali informazioni puoi indicare nella finestra Rilascio CIE?',
+    options: ['Sezione elettorale e indirizzo', 'Numero di lista e data elezioni', 'Tipo di CIE e modalità di pagamento', 'Protocollo e firmatario'],
+    correctIndex: 2,
+    explanation: 'La finestra consente di indicare il tipo di CIE e la modalità di pagamento per i diritti contabilizzati in Cityware.',
+    source: sources.cie,
+  },
+];
+
+const generateQuiz = ({ topic: requestedTopic = topic, n }) => {
+  if (requestedTopic === electionTopic) return { topic: electionTopic, questions: electionQuestions.slice(0, n) };
+  if (requestedTopic === topic || requestedTopic === 'Rilascio CIE in Cityware') return { topic, questions: cieQuestions.slice(0, n) };
+  return { topic: requestedTopic, questions: [] };
+};
 
 const askAssistant = ({ message, history }) => {
   const text = message.toLocaleLowerCase('it');
@@ -86,6 +113,7 @@ const askAssistant = ({ message, history }) => {
       level: 1,
       answer: 'Per iniziare con le elezioni amministrative, apri la funzione dedicata in Cityware.',
       sources: [sources.elezioni],
+      quizTopic: electionTopic,
       steps: ['Vai a Demografici → Elettorale → Elettorale → Elezioni → Apertura Elezioni.', 'Seleziona il tipo di consultazione previsto per le elezioni amministrative.', 'Verifica la data e i dati della tornata nella sezione Elezioni Amministrative del manuale.'],
     };
   }
@@ -126,4 +154,4 @@ const dashboardExample = {
   ],
 };
 
-module.exports = { askAssistant, generateQuiz, sources, topic, dashboardExample };
+module.exports = { askAssistant, generateQuiz, sources, topic, electionTopic, dashboardExample };

@@ -59,6 +59,23 @@ describe('Livelli dell’assistente Orienta', () => {
     assert.equal(reply.ticket.priority, 'alta');
   });
 
+  for (const [area, message, folder, choice] of [
+    ['finanziaria', 'Come associo un accertamento a un servizio PagoPA?', '10 - Area Economico - Finanziaria/', 'Atti di liquidazione'],
+    ['codice-strada', 'Come uso Inserimento Verbale, Nuovo e la scheda Infrazione?', '15 - Codice della Strada/', 'Inserimento verbali'],
+  ]) {
+    it(`limita le fonti e i chiarimenti all’area ${area}`, async () => {
+      const reply = await askAssistant({ area, message, useModel: false });
+      assert.equal(reply.level, 1);
+      assert.ok(reply.sources.length > 0 && reply.sources.every(({ file }) => file.startsWith(folder)));
+      assert.ok(reply.steps.every((step) => step !== 'Apri il menu **→**.'));
+
+      const guide = await askAssistant({ area, message: 'Aiuto', useModel: false });
+      assert.equal(guide.level, 2);
+      assert.ok(guide.choices.includes(choice));
+      assert.ok(!guide.choices.includes('Anagrafe'));
+    });
+  }
+
   it('usa il livello 1 anche nelle risposte dimostrative per le amministrative', async () => {
     const message = 'Devo aprire una tornata elettorale. Quale procedura seguo?';
     const guide = await demo.askAssistant({ message, history: [] });
