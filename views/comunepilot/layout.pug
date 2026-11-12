@@ -11,8 +11,8 @@ html(lang='it')
   body.cp-app
     a.cp-skip(href='#contenuto') Vai al contenuto
     mixin navLink(key, label, href, icon)
-      - const active = page === key || (key === 'home' && page === 'manual');
-      a.cp-nav-link(href=href, class=active ? 'is-active' : '', aria-current=active ? 'page' : undefined)
+      - const current = page === key ? 'page' : key === 'home' && ['welcome', 'manual'].includes(page) ? 'location' : undefined;
+      a.cp-nav-link(href=href, class=current ? 'is-active' : '', aria-current=current)
         i.fa-solid(aria-hidden='true', class=icon)
         span= label
     header.cp-header
@@ -35,15 +35,11 @@ html(lang='it')
         nav.cp-navigation(aria-label='Navigazione principale')
           p.cp-nav-label Spazio operatore
           +navLink('home', 'Il mio percorso', '/', 'fa-book-open')
-          +navLink('assistant', 'Assistente', '/assistente', 'fa-comment-dots')
-          +navLink('welcome', 'Primo accesso', '/benvenuto', 'fa-door-open')
           +navLink('lesson', 'Microlezione CIE', '/formazione/cie', 'fa-circle-play')
           +navLink('quiz', 'Mini-quiz', '/quiz', 'fa-list-check')
+          +navLink('assistant', 'Assistente', '/assistente', 'fa-comment-dots')
           p.cp-nav-label Spazio formatore
           +navLink('dashboard', 'Cruscotto', '/palitalsoft', 'fa-chart-column')
-        .cp-sidebar-footer
-          span.cp-status-dot(aria-hidden='true')
-          | Prototipo hackathon
       main#contenuto.cp-main(tabindex='-1')
         .cp-content
           block content
