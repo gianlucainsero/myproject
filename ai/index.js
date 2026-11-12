@@ -3,6 +3,7 @@
 const { search, listDocs, loadIndex } = require('./search');
 const { generateJSON, isConfigured } = require('./llm');
 const P = require('./prompts');
+const { cleanLesson } = require('./lesson-text');
 
 const DEFAULT_AREA = 'demografici';
 
@@ -141,8 +142,9 @@ async function generateLesson({ topic, area = DEFAULT_AREA }) {
         temperature: 0.2,
       });
       const sources = toSources(chunks, sourceIds);
-      if (title?.trim() && intro?.trim() && keyPoints?.length >= 3 && keyPoints.length <= 5 && Array.isArray(steps) && sources.length) {
-        return { title, intro, keyPoints, steps, sources };
+      const lesson = cleanLesson({ title, intro, keyPoints, steps, sources });
+      if (lesson.title && lesson.intro && lesson.keyPoints.length >= 3 && sources.length) {
+        return lesson;
       }
     } catch (err) {
       console.error('[ai] generateLesson: errore modello, uso la lezione di riserva →', err.message);
@@ -154,16 +156,16 @@ async function generateLesson({ topic, area = DEFAULT_AREA }) {
   const steps = stepsFromDoc(sections);
   const numbered = sections.flatMap((section) => Array.from(section.text.matchAll(/^\d+[.)]\s+(.+)$/gm), ([, point]) => point));
   const summaries = sections.map((section) => firstSentence(section.text.replace(/^\s*\*\*Link utili:\*\*.*$/gim, '')));
-  const keyPoints = [...new Set([summaries[0], ...numbered, ...summaries])].filter(Boolean).slice(0, 5);
+  const keyPoints = [summaries[0], ...numbered, ...summaries];
   const sources = toSources([primary], [primary.id]);
-  return {
+  return cleanLesson({
     title: topic,
     intro: `Ripassa la procedura descritta nel manuale «${ primary.title }».`,
     keyPoints,
     steps,
     sources,
     ...(configured ? { fallback: true } : { mock: true }),
-  };
+  });
 }
 
 // ---------------------------------------------------------------------------

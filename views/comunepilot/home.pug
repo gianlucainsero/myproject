@@ -12,13 +12,17 @@ block content
     p.cp-feedback.cp-feedback-success(role='status') Ripasso completato. I tuoi progressi sono stati registrati.
 
   if assignment
-    section.cp-review-banner.cp-card(aria-labelledby='assignment-title')
+    section.cp-review-banner.cp-assignment-banner.cp-card(aria-labelledby='assignment-title')
       .cp-feature-icon
         i.fa-solid.fa-list-check(aria-hidden='true')
       div
-        h2#assignment-title Nuovo ripasso da Palitalsoft
-        p= assignment.lesson.title
-      a.cp-btn.cp-btn-white(href='/ripasso/' + assignment._id)
+        .cp-assignment-heading
+          h2#assignment-title Nuovo ripasso da Palitalsoft
+          span.cp-new-badge NUOVO
+        p
+          strong= assignment.title
+        p Creato da Palitalsoft dalle difficoltà dei colleghi
+      a.cp-btn.cp-btn-white(href='/ripasso/' + assignment.id)
         | Inizia
         i.fa-solid.fa-arrow-right(aria-hidden='true')
 

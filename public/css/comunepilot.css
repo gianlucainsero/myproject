@@ -350,6 +350,27 @@
 .cp-review-banner .cp-btn {
   margin-left: auto;
 }
+.cp-assignment-banner {
+  background: var(--cp-secondary);
+}
+.cp-assignment-banner p {
+  color: var(--cp-white);
+}
+.cp-assignment-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+}
+.cp-new-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--cp-training-tint);
+  color: var(--cp-training-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
 .cp-home-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
@@ -403,7 +424,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 8px;
 }
 .cp-module-list small {
   display: block;

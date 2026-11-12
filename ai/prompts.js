@@ -79,6 +79,7 @@ Regole:
 - 4 opzioni plausibili, una sola corretta, di lunghezza simile. Niente "tutte le precedenti".
 - "explanation": 1-2 frasi che spiegano perché la risposta è giusta, con tono incoraggiante.
 - "sourceId": l'ID dell'estratto da cui viene la domanda.
+- Ometti i numeri di richiamo delle schermate da domande, opzioni e spiegazioni.
 - Italiano semplice. Il quiz è un "ripasso", non un esame.`;
 }
 
@@ -105,7 +106,8 @@ const quizSchema = {
 
 function lessonSystem(area) {
   return `Crea una microlezione pratica in italiano semplice per gli operatori di Cityware Online, area ${MODULE_NAMES[area] || area}.
-Usa solo gli estratti numerati forniti. Scrivi un titolo, un'introduzione di al massimo due frasi, da 3 a 5 punti chiave e i passi nel software in ordine. Evidenzia menu e pulsanti in **grassetto**. Cita in sourceIds gli ID degli estratti utilizzati. Ometti i passi che gli estratti non documentano.`;
+Usa solo gli estratti numerati forniti. Scrivi un titolo, un'introduzione di al massimo due frasi, da 3 a 5 punti chiave e i passi nel software in ordine. Evidenzia menu e pulsanti in **grassetto**. Cita in sourceIds gli ID degli estratti utilizzati. Ometti i passi che gli estratti non documentano.
+Riunisci in un solo passo le istruzioni uguali per più casi. Ometti i numeri di richiamo delle schermate. Riporta gli ID degli estratti solo in sourceIds.`;
 }
 
 const lessonSchema = {

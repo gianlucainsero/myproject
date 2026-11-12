@@ -13,9 +13,10 @@ block content
       article.cp-card.cp-metric
         span= metric.label
         strong= metric.value
-        small(class=index === 3 ? 'cp-metric-priority' : '')
-          i.fa-solid(aria-hidden='true', class=metric.icon)
-          = metric.detail
+        if metric.detail
+          small(class=index === 3 ? 'cp-metric-priority' : '')
+            i.fa-solid(aria-hidden='true', class=metric.icon)
+            = metric.detail
   p.cp-dashboard-note Dati della sessione e dati simulati inclusi negli indicatori.
 
   section#assignment-preview.cp-card.cp-document(aria-labelledby='preview-title', hidden)
@@ -37,7 +38,8 @@ block content
         .cp-topic-row
           strong= item.title
           span= item.target
-          span= item.count === 1 ? '1 completamento' : item.count + ' completamenti'
+          if item.count
+            span= item.count === 1 ? '1 completamento' : item.count + ' completamenti'
           if item.percent !== null
             span= 'Competenza media · ' + item.percent + '%'
             progress.cp-progress(value=item.percent, max='100', aria-label=item.topic)
@@ -49,7 +51,7 @@ block content
       nav.cp-ticket-filters(aria-label='Filtra per tipo')
         each item in filters
           a.cp-filter-chip(href=item.value ? `/palitalsoft?tipo=${encodeURIComponent(item.value)}#coda` : '/palitalsoft#coda', aria-current=filter === item.value ? 'true' : undefined)
-            = `${item.label} · ${item.count}`
+            = item.count ? `${item.label} · ${item.count}` : item.label
       if tickets.length
         .table-responsive
           table.cp-table

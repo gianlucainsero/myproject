@@ -419,7 +419,7 @@
         const saved = await request('/api/assignments', { previewId: draft.previewId });
         const confirmation = document.querySelector('#assignment-confirmation');
         const entry = element('div', 'cp-topic-row');
-        entry.append(element('strong', '', saved.title), element('span', '', saved.target), element('span', '', '0 completamenti'));
+        entry.append(element('strong', '', saved.title), element('span', '', saved.target));
         document.querySelector('#assignments-empty')?.remove();
         document.querySelector('#assignment-list').prepend(entry);
         confirmation.hidden = false;

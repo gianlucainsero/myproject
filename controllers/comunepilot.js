@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const ai = require('../ai');
+const { cleanLesson, cleanLessonText } = require('../ai/lesson-text');
 const { loadIndex } = require('../ai/search');
 const { Assignment, Case, Quiz } = require('../models/ComunePilot');
 const demo = require('./comunepilot-demo');
@@ -73,7 +74,8 @@ exports.home = async (req, res) => {
   ]);
   const { completedReview } = req.session;
   delete req.session.completedReview;
-  res.render('comunepilot/home', { ...locals('home', 'Il mio percorso'), latest, assignment, completedReview });
+  const pending = assignment && { id: assignment._id, title: cleanLessonText(assignment.lesson.title) };
+  res.render('comunepilot/home', { ...locals('home', 'Il mio percorso'), latest, assignment: pending, completedReview });
 };
 
 exports.lesson = async (req, res) => {
@@ -99,7 +101,8 @@ exports.review = async (req, res) => {
   const identity = owner(req);
   const assignment = validId(req.params.id) ? await Assignment.findById(req.params.id).lean() : null;
   if (!assignment) return res.status(404).send('Ripasso non disponibile.');
-  const { lesson, topic, _id, completions } = assignment;
+  const { topic, _id, completions } = assignment;
+  const lesson = cleanLesson(assignment.lesson);
   const sources = lesson.sources.map((source) => sourceLink(source, req));
   const completion = completions.find((entry) => entry.owner === identity);
   res.render('comunepilot/review', { ...locals('home', lesson.title), lesson, sources, completion, topic, assignmentId: _id.toString() });
@@ -177,11 +180,12 @@ exports.dashboard = async (req, res) => {
   const tickets = filter ? queue.filter((ticket) => ticket.type === filter) : queue;
   const filters = [{ value: '', label: 'Tutti', count: queue.length }, ...Object.entries(ticketTypes).map(([value, label]) => ({ value, label, count: queue.filter((ticket) => ticket.type === value).length }))];
   const highPriority = queue.filter((ticket) => ticket.priority === 'alta').length;
+  const competenceDetail = [quizzes.length && `${quizzes.length} quiz della sessione`, completions.length && (completions.length === 1 ? '1 ripasso completato' : `${completions.length} ripassi completati`)].filter(Boolean).join(' · ');
   const metrics = [
-    { label: 'Ticket evitati', value: resolved.length + example.resolved, detail: `${resolved.length} dalla sessione`, icon: 'fa-circle-check' },
+    { label: 'Ticket evitati', value: resolved.length + example.resolved, detail: resolved.length ? `${resolved.length} dalla sessione` : '', icon: 'fa-circle-check' },
     { label: 'Risolte al livello 1', value: `${Math.round((100 * (resolvedDirect + example.resolvedDirect)) / (closed + example.closed))}%`, detail: 'Sulle richieste chiuse', icon: 'fa-comment-dots' },
-    { label: 'Competenza media', value: `${Math.round((100 * (quizCorrect + example.quizCorrect)) / (questionCount + example.quizQuestions))}%`, detail: `${quizzes.length} quiz della sessione · ${completions.length} ripassi completati`, icon: 'fa-list-check' },
-    { label: 'Ticket in coda', value: queue.length, detail: `${highPriority} a priorità alta`, icon: 'fa-ticket' },
+    { label: 'Competenza media', value: `${Math.round((100 * (quizCorrect + example.quizCorrect)) / (questionCount + example.quizQuestions))}%`, detail: competenceDetail, icon: 'fa-list-check' },
+    { label: 'Ticket in coda', value: queue.length, detail: highPriority ? `${highPriority} a priorità alta` : '', icon: 'fa-ticket' },
   ];
   const requestedTopics = rankDashboardRows(cases.map((entry) => entry.topic).filter(Boolean), example.topics).slice(0, 6);
   const manualGaps = rankDashboardRows(
@@ -203,7 +207,7 @@ exports.dashboard = async (req, res) => {
     assignments: assignments.map(({ topic, lesson, target, completions }) => {
       const score = completions.reduce((sum, entry) => sum + entry.score, 0);
       const total = completions.reduce((sum, entry) => sum + entry.total, 0);
-      return { topic, title: lesson.title, target, count: completions.length, percent: total ? Math.round((100 * score) / total) : null };
+      return { topic, title: cleanLessonText(lesson.title), target, count: completions.length, percent: total ? Math.round((100 * score) / total) : null };
     }),
   });
 };
