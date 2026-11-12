@@ -83,7 +83,7 @@ exports.lesson = async (req, res) => {
 };
 
 exports.welcome = (req, res) => {
-  res.render('comunepilot/welcome', locals('home', 'Primo accesso'));
+  res.render('comunepilot/welcome', locals('welcome', 'Primo accesso'));
 };
 
 exports.assistant = (req, res) => {

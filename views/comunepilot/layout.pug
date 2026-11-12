@@ -11,7 +11,7 @@ html(lang='it')
   body.cp-app
     a.cp-skip(href='#contenuto') Vai al contenuto
     mixin navLink(key, label, href, icon)
-      - const active = page === key || (key === 'home' && ['lesson', 'quiz', 'manual'].includes(page));
+      - const active = page === key || (key === 'home' && page === 'manual');
       a.cp-nav-link(href=href, class=active ? 'is-active' : '', aria-current=active ? 'page' : undefined)
         i.fa-solid(aria-hidden='true', class=icon)
         span= label
@@ -36,6 +36,9 @@ html(lang='it')
           p.cp-nav-label Spazio operatore
           +navLink('home', 'Il mio percorso', '/', 'fa-book-open')
           +navLink('assistant', 'Assistente', '/assistente', 'fa-comment-dots')
+          +navLink('welcome', 'Primo accesso', '/benvenuto', 'fa-door-open')
+          +navLink('lesson', 'Microlezione CIE', '/formazione/cie', 'fa-circle-play')
+          +navLink('quiz', 'Mini-quiz', '/quiz', 'fa-list-check')
           p.cp-nav-label Spazio formatore
           +navLink('dashboard', 'Cruscotto', '/palitalsoft', 'fa-chart-column')
         .cp-sidebar-footer
